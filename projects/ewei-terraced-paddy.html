@@ -1,8 +1,3 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>鵝尾山水梯田灌溉模擬</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -191,10 +186,12 @@ svg.schem text{font-family:var(--f-mono);font-size:11px;fill:var(--ink)}
     <div class="grid2">
       <div class="prose">
         <p>每坵田視為一個水箱，容量為土壤可蓄水量 (蓄水深度 × 孔隙率) 加上湛水深。上游來水先補足入滲、蒸發散與尚未填滿的容量；田塊蓄滿後，多餘的水從田埂缺口溢流，依分水比例流向下一坵田，最後由 S20 排入溪流。</p>
-        <div class="eq">S ← S + Q_in + (P − ET)·A − K·A
-Q_out = max(S − S_max, 0)
+        <div class="eq">S_tmp = S + Q_in(t+1) + (P − ET − K)·A
+S = max(S_tmp, 0)          (土壤水最低為 0，不出現負值)
+Q_out = max(S − S_max, 0)，S ← S − Q_out
 S_max = A·(d·n + h_p)</div>
-        <p class="small muted">S：田塊蓄水量 (m³)；Q_in、Q_out：入流與溢流 (m³/day)；A：田塊面積 (m²)；P：降雨、ET：蒸發散 (m/day)；K：入滲率 (m/day)；d：土壤蓄水深度、n：孔隙率、h_p：湛水深 (m)。</p>
+        <p class="small"><b>假設：田內儲水量 S 不低於 0。</b>田面乾燥後，實際蒸發散會隨土壤含水量下降，不會持續以固定的 Kc·PET 扣除；同時深層土壤仍保持濕潤，可藉毛細作用向上補給表層土壤，因此儲水量不會無限制減少。設定 S ≥ 0 可避免乾燥田塊累積不存在的「水分虧缺」，使下游淹水時間不被高估。</p>
+        <p class="small muted">S：田內儲水量，土壤水 + 湛水 (m³)；Q_in、Q_out：入流與溢流 (m³/day)；A：田塊面積 (m²)；P：降雨、ET：蒸發散 (m/day)；K：入滲率 (m/day)；d：土壤蓄水深度、n：孔隙率、h_p：湛水深 (m)。</p>
       </div>
       <div class="tbl"><table id="wb-route"></table></div>
     </div>
@@ -675,7 +672,7 @@ function flRun() {
         }
         const A = AREA[k], L = (A * p.K / 100 + et / 1000 * A - rain / 1000 * A) * dt;
         lossT += A * (p.K / 100 + et / 1000) * dt;
-        S[k] += IN[k] - L;
+        S[k] = Math.max(S[k] + IN[k] - L, 0);   // S_tmp < 0 → S = 0
         const cap = capS[k] + capP[k], out = Math.max(S[k] - cap, 0); S[k] -= out;
         for (const [c, r] of Object.entries(ch[k] || {})) IN[c] += out * r;
       }
@@ -919,5 +916,3 @@ const rethem = () => { themeChart(); Object.keys(rendered).forEach(k => rendered
 try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rethem); } catch (e) {}
 new MutationObserver(rethem).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
 </script>
-
-</html>
