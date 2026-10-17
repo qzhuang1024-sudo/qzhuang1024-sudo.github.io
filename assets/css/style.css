@@ -134,3 +134,20 @@ footer {
 .proj-roc { font-size: 0.8rem; margin-top: 2px; }
 ul.proj-role { margin: 6px 0 0; padding-left: 1.2em; font-size: 0.95rem; }
 ul.proj-role li { margin: 2px 0; }
+
+/* ---- Award certificates ---- */
+.award { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; }
+.award-thumb { flex: none; }
+.award-thumb img { width: 72px; height: 96px; object-fit: cover; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+.award-thumb:hover img { border-color: var(--accent); }
+
+/* ---- Research figure cards ---- */
+.rcard { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 22px; align-items: start; }
+.rfig { margin: 0; }
+.rfig + .rfig { margin-top: 16px; }
+.rfig img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.rfig a:hover img { border-color: var(--accent); }
+.rfig figcaption { font-size: 0.8rem; color: var(--muted); line-height: 1.45; margin-top: 6px; }
+.rtext p { margin: 0 0 10px; }
+.rcite { font-size: 0.88rem; color: var(--muted); }
+@media (max-width: 640px) { .rcard { grid-template-columns: 1fr; gap: 14px; } }
