@@ -1,0 +1,2385 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com; base-uri 'none'; form-action 'none'; object-src 'none';">
+<title>自然解方工具箱（獨立分享版）</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
+
+  :root{
+    --ground:#F6F4EE;
+    --surface:#FFFFFF;
+    --surface-2:#EFEBE0;
+    --ink:#1E2A22;
+    --ink-soft:#3A4A3E;
+    --muted:#647065;
+    --line:#DCD6C6;
+    --line-strong:#C7BFA8;
+    --accent:#0E6B70;
+    --accent-ink:#083F42;
+    --accent-soft:#DCEDEB;
+    --accent-2:#4C7A3D;
+    --accent-2-soft:#E3EDDB;
+    --warm:#A8672C;
+    --warm-soft:#F3E4CE;
+    --danger:#A8402C;
+    --danger-soft:#F5DFD8;
+    --shadow: 0 1px 2px rgba(30,42,34,.06), 0 8px 24px -12px rgba(30,42,34,.18);
+    --radius: 10px;
+    --serif: 'Noto Serif TC', 'Songti TC', serif;
+    --sans: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+    --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#10160F0F;
+      --ground:#111813;
+      --surface:#171F19;
+      --surface-2:#1D2620;
+      --ink:#E7EFE6;
+      --ink-soft:#C4D2C6;
+      --muted:#8FA095;
+      --line:#2B362E;
+      --line-strong:#3B4A3E;
+      --accent:#57C2C4;
+      --accent-ink:#BFEEEE;
+      --accent-soft:#173231;
+      --accent-2:#8FC470;
+      --accent-2-soft:#1E2C18;
+      --warm:#E3A65C;
+      --warm-soft:#332615;
+      --danger:#E38A73;
+      --danger-soft:#331D16;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#111813;
+    --surface:#171F19;
+    --surface-2:#1D2620;
+    --ink:#E7EFE6;
+    --ink-soft:#C4D2C6;
+    --muted:#8FA095;
+    --line:#2B362E;
+    --line-strong:#3B4A3E;
+    --accent:#57C2C4;
+    --accent-ink:#BFEEEE;
+    --accent-soft:#173231;
+    --accent-2:#8FC470;
+    --accent-2-soft:#1E2C18;
+    --warm:#E3A65C;
+    --warm-soft:#332615;
+    --danger:#E38A73;
+    --danger-soft:#331D16;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+
+  *{box-sizing:border-box;}
+  html{color-scheme: light dark;}
+  body{
+    margin:0;
+    background:var(--ground);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16.5px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:var(--serif); font-weight:600; color:var(--ink); text-wrap:balance; margin:0;}
+  p{margin:0;}
+  button{font-family:var(--sans); cursor:pointer;}
+  textarea, input, select{font-family:var(--sans); color:var(--ink);}
+  a{color:var(--accent);}
+  ::selection{background:var(--accent-soft); color:var(--accent-ink);}
+
+  .app{display:flex; min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:232px; flex:none; background:var(--surface);
+    border-right:1px solid var(--line);
+    display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{padding:22px 20px 16px; border-bottom:1px solid var(--line);}
+  .brand-mark{display:flex; align-items:center; gap:10px;}
+  .brand-icon{width:34px;height:34px;flex:none;}
+  .brand-title{font-family:var(--serif); font-size:18px; font-weight:600; line-height:1.25;}
+  .brand-sub{font-size:13.5px; color:var(--muted); margin-top:3px; letter-spacing:.02em;}
+
+  .nav{padding:14px 12px; display:flex; flex-direction:column; gap:2px; flex:1;}
+  .nav-item{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 12px; border-radius:8px; border:none; background:transparent;
+    color:var(--ink-soft); font-size:16px; font-weight:500; text-align:left;
+    width:100%;
+  }
+  .nav-item svg{width:18px;height:18px;flex:none; opacity:.8;}
+  .nav-item:hover{background:var(--surface-2);}
+  .nav-item.active{background:var(--accent-soft); color:var(--accent-ink); font-weight:600;}
+  .nav-item.active svg{opacity:1;}
+  .nav-num{
+    margin-left:auto; font-size:12.5px; font-variant-numeric:tabular-nums;
+    color:var(--muted); background:var(--surface-2); border-radius:999px;
+    padding:1px 7px;
+  }
+  .nav-item.active .nav-num{background:rgba(255,255,255,.35); color:var(--accent-ink);}
+
+  .sidebar-foot{padding:14px 20px 18px; border-top:1px solid var(--line);}
+  .theme-toggle{
+    display:flex; gap:4px; background:var(--surface-2); border-radius:8px; padding:3px;
+    margin-top:14px;
+  }
+  .theme-toggle button{
+    flex:1; border:none; background:transparent; padding:6px 4px; border-radius:6px;
+    font-size:13.5px; color:var(--muted);
+  }
+  .theme-toggle button.active{background:var(--surface); color:var(--ink); box-shadow:var(--shadow);}
+  .foot-note{font-size:12.5px; color:var(--muted); margin-top:10px; line-height:1.5;}
+
+  /* mobile top bar */
+  .topbar{display:none;}
+
+  /* ---------- Main ---------- */
+  .main{flex:1; min-width:0;}
+  .panel{display:none; padding:36px 40px 80px; max-width:1180px; margin:0 auto;}
+  .panel.active{display:block;}
+  .panel-head{margin-bottom:28px;}
+  .eyebrow{
+    font-size:13.5px; font-weight:700; letter-spacing:.08em; color:var(--accent);
+    text-transform:uppercase; margin-bottom:8px; display:block;
+  }
+  .panel-head h1{font-size:27px; margin-bottom:8px;}
+  .panel-head .lede{color:var(--muted); font-size:16.5px; max-width:64ch;}
+
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow);
+  }
+  .section-title{font-size:14.5px; font-weight:700; color:var(--ink-soft); letter-spacing:.03em;}
+
+  /* ===== Overview ===== */
+  .stat-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:22px 0 30px;}
+  .stat-tile{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;}
+  .stat-num{font-family:var(--serif); font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--accent-ink); background:none;}
+  .stat-label{font-size:14px; color:var(--muted); margin-top:2px;}
+
+  .quote-block{
+    border-left:3px solid var(--accent); padding:14px 20px; background:var(--accent-soft);
+    border-radius:0 8px 8px 0; margin:22px 0; color:var(--ink-soft); font-size:16px;
+  }
+  .quote-block cite{display:block; margin-top:8px; font-size:14px; color:var(--muted); font-style:normal;}
+
+  .tool-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:22px;}
+  .tool-card{
+    padding:20px; display:flex; flex-direction:column; gap:10px; text-align:left;
+    border:none; background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow);
+  }
+  .tool-card .ic{width:30px;height:30px; color:var(--accent);}
+  .tool-card h3{font-size:17px;}
+  .tool-card p{font-size:15px; color:var(--muted);}
+  .tool-card .go{font-size:14.5px; font-weight:600; color:var(--accent); margin-top:auto;}
+
+  .cat-legend{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:16px;}
+  .cat-row{display:flex; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:8px; background:var(--surface);}
+  .cat-chip-lg{
+    flex:none; width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--serif); font-weight:700; font-size:16px; color:#fff;
+  }
+  .cat-row .txt{font-size:14.5px;}
+  .cat-row .txt b{font-size:15.5px; display:block; color:var(--ink);}
+  .cat-row .txt span{color:var(--muted);}
+
+  /* ===== Flow / planner ===== */
+  .stepper{display:grid; grid-template-columns:repeat(5,1fr); gap:0; margin-bottom:8px;}
+  .step{
+    position:relative; padding:16px 14px 14px; border:1px solid var(--line); background:var(--surface);
+    cursor:pointer;
+  }
+  .step:first-child{border-radius:10px 0 0 10px;}
+  .step:last-child{border-radius:0 10px 10px 0;}
+  .step + .step{border-left:none;}
+  .step:hover{background:var(--surface-2);}
+  .step .n{
+    width:22px;height:22px;border-radius:999px;background:var(--accent); color:#fff;
+    font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-bottom:9px;
+  }
+  .step h4{font-size:15px; line-height:1.3;}
+  .step .arrow{
+    position:absolute; right:-11px; top:50%; transform:translateY(-50%); z-index:2;
+    width:22px;height:22px; color:var(--muted);
+  }
+  .step:last-child .arrow{display:none;}
+  .loop-note{
+    display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--muted);
+    margin:10px 2px 26px; padding-left:2px;
+  }
+  .loop-note svg{width:15px;height:15px; color:var(--accent-2); flex:none;}
+
+  .step-detail{
+    display:none; background:var(--accent-soft); border:1px solid var(--line); border-radius:8px;
+    padding:14px 16px; font-size:15px; color:var(--ink-soft); margin:-2px 0 26px; line-height:1.65;
+  }
+  .step-detail.open{display:block;}
+  .step-detail b{color:var(--ink);}
+
+  .flow-toolbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:18px;}
+  .btn{
+    display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:8px; font-size:15px; font-weight:600;
+    border:1px solid var(--line-strong); background:var(--surface); color:var(--ink);
+  }
+  .btn:hover{background:var(--surface-2);}
+  .btn svg{width:15px;height:15px;}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn.primary:hover{filter:brightness(1.06);}
+  .btn.ghost{border-color:transparent; background:transparent; color:var(--muted);}
+  .btn.ghost:hover{background:var(--surface-2); color:var(--ink);}
+  .btn.sm{padding:5px 10px; font-size:14px;}
+  .spacer{flex:1;}
+  .save-indicator{font-size:13.5px; color:var(--muted); display:flex; align-items:center; gap:6px;}
+  .save-dot{width:6px;height:6px;border-radius:999px; background:var(--accent-2);}
+
+  #diagram-capture{background:var(--ground); padding:18px; border-radius:12px;}
+
+  .profile-explainer{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:14px 18px; margin-bottom:20px;
+  }
+  .profile-explainer summary{
+    cursor:pointer; font-weight:700; color:var(--ink); font-size:15px; list-style:none;
+  }
+  .profile-explainer summary::-webkit-details-marker{display:none;}
+  .profile-explainer summary::before{content:"▸  "; color:var(--accent);}
+  .profile-explainer[open] summary::before{content:"▾  ";}
+  .profile-explainer .explainer-body{
+    margin-top:14px; display:grid; grid-template-columns:repeat(2,1fr); gap:14px 18px;
+  }
+  .profile-explainer .explainer-item h4{font-size:14.5px; margin-bottom:5px; color:var(--accent-ink);}
+  .profile-explainer .explainer-item p{font-size:14.5px; line-height:1.7; color:var(--ink-soft);}
+
+  .profile-title{
+    display:flex; align-items:baseline; gap:10px; margin:6px 2px 14px;
+  }
+  .profile-title h3{font-size:16.5px;}
+  .profile-title span{font-size:14px; color:var(--muted);}
+
+  .grid-flow{display:flex; flex-direction:column; gap:0;}
+  .flow-row{display:grid; gap:12px;}
+  .flow-row.cols-1{grid-template-columns:1fr;}
+  .flow-row.cols-2{grid-template-columns:1fr 1fr;}
+  .flow-row.cols-3{grid-template-columns:repeat(3,1fr);}
+  .flow-row.cols-4{grid-template-columns:repeat(4,1fr);}
+  .flow-connector{display:flex; justify-content:center; padding:6px 0;}
+  .flow-connector svg{width:18px;height:22px; color:var(--line-strong);}
+
+  .node{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:13px 14px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .node.hub{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft) inset;}
+  .node .node-label{
+    font-size:13.5px; font-weight:700; color:var(--accent-ink); display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+  }
+  .node .node-label .pick-btn{
+    margin-left:auto; font-size:12.5px; font-weight:600; color:var(--accent); background:var(--accent-soft);
+    border:none; border-radius:6px; padding:3px 8px;
+  }
+  .node .hint{font-size:12.5px; color:var(--muted); line-height:1.5;}
+  .node textarea{
+    width:100%; min-height:64px; resize:vertical; border:1px dashed var(--line-strong); border-radius:7px;
+    padding:8px 9px; font-size:14.5px; background:var(--ground); color:var(--ink); line-height:1.55;
+  }
+  .node textarea:focus{outline:2px solid var(--accent); outline-offset:1px; background:var(--surface);}
+  .node.hub textarea{min-height:44px; font-weight:600;}
+
+  /* ===== Database ===== */
+  .db-controls{display:flex; flex-direction:column; gap:14px; margin-bottom:20px;}
+  .search-row{display:flex; gap:10px;}
+  .search-box{
+    flex:1; display:flex; align-items:center; gap:9px; background:var(--surface); border:1px solid var(--line);
+    border-radius:9px; padding:9px 13px;
+  }
+  .search-box svg{width:16px;height:16px; color:var(--muted); flex:none;}
+  .search-box input{flex:1; border:none; background:transparent; font-size:15.5px; outline:none;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:7px;}
+  .chip{
+    border:1px solid var(--line-strong); background:var(--surface); color:var(--ink-soft); font-size:14px;
+    font-weight:600; padding:5px 11px; border-radius:999px;
+  }
+  .chip:hover{background:var(--surface-2);}
+  .chip.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .tag-row{display:flex; flex-wrap:wrap; gap:6px;}
+  .tagchip{
+    border:1px solid var(--line); background:var(--surface-2); color:var(--muted); font-size:13px;
+    padding:3px 9px; border-radius:999px;
+  }
+  .tagchip.active{background:var(--accent-2-soft); border-color:var(--accent-2); color:var(--ink);}
+
+  .result-meta{font-size:14.5px; color:var(--muted); margin-bottom:12px;}
+  .result-list{display:flex; flex-direction:column; gap:10px;}
+  .result-card{padding:16px 18px;}
+  .result-top{display:flex; align-items:flex-start; gap:10px;}
+  .cat-chip{
+    flex:none; font-size:12.5px; font-weight:700; color:#fff; border-radius:6px; padding:3px 7px;
+    font-variant-numeric:tabular-nums;
+  }
+  .result-name{font-size:16.5px; font-weight:700; color:var(--ink); flex:1;}
+  .result-id{font-family:var(--mono); font-size:12.5px; color:var(--muted); white-space:nowrap;}
+  .result-desc{
+    font-size:15px; color:var(--ink-soft); margin:9px 0 0; line-height:1.65;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; white-space:pre-line;
+  }
+  .result-desc.expanded{-webkit-line-clamp:unset;}
+  .result-foot{display:flex; align-items:center; gap:10px; margin-top:11px; flex-wrap:wrap;}
+  .result-tags{display:flex; gap:6px; flex-wrap:wrap; flex:1;}
+  .mini-tag{font-size:12.5px; color:var(--muted); background:var(--surface-2); border-radius:999px; padding:2px 8px;}
+  .link-btn{font-size:13.5px; font-weight:600; color:var(--accent); background:none; border:none; padding:0;}
+  .explainer-item .link-btn{margin-top:8px; display:inline-block;}
+
+  /* ===== Simple profile pages (簡表一 / 簡表三) ===== */
+  .simple-diagram{background:var(--ground); padding:18px; border-radius:12px;}
+  .p1-row{display:flex; align-items:stretch; gap:14px; flex-wrap:wrap;}
+  .p1-row .node{flex:1; min-width:220px;}
+  .p1-arrow{display:flex; align-items:center; justify-content:center; flex:none; width:34px; color:var(--accent-2);}
+  .p1-arrow svg{width:26px; height:26px;}
+  .p3-grid{display:flex; flex-direction:column; gap:14px;}
+  .p3-row-top{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+
+  .empty-state{text-align:center; padding:50px 20px; color:var(--muted); font-size:15.5px;}
+
+  /* ===== Similarity match panel ===== */
+  .field-group{display:flex; flex-direction:column; gap:6px; margin-bottom:14px;}
+  .field-group label{font-size:14px; font-weight:600; color:var(--ink-soft);}
+  .field-group .fhint{font-size:13px; color:var(--muted);}
+  .check-row{display:flex; align-items:flex-start; gap:8px; font-size:13px; color:var(--ink-soft); cursor:pointer; margin-top:2px;}
+  .check-row input[type="checkbox"]{margin-top:3px; cursor:pointer;}
+  select, .input, textarea.input{
+    border:1px solid var(--line-strong); border-radius:8px; padding:9px 11px; font-size:15.5px;
+    background:var(--surface); color:var(--ink); width:100%;
+  }
+  select:focus, .input:focus{outline:2px solid var(--accent); outline-offset:1px;}
+
+  .match-list{display:flex; flex-direction:column; gap:8px; margin-top:6px;}
+  .match-item{padding:11px 13px; display:flex; gap:10px; align-items:flex-start;}
+  .match-score{
+    flex:none; width:34px; height:34px; border-radius:8px; background:var(--accent-soft); color:var(--accent-ink);
+    font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; text-align:center;
+  }
+  .match-body{flex:1; min-width:0;}
+  .match-body .mn{font-size:15px; font-weight:700;}
+  .match-body .md{font-size:14px; color:var(--muted); margin-top:3px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; white-space:pre-line;}
+
+  .toast{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0;
+    background:var(--ink); color:var(--ground); padding:10px 18px; border-radius:999px; font-size:15px;
+    box-shadow:var(--shadow); transition:all .25s ease; z-index:50; pointer-events:none;
+    display:flex; align-items:center; gap:8px;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(20,24,20,.45); backdrop-filter:blur(1px);
+    display:flex; align-items:center; justify-content:center; z-index:100;
+    opacity:0; pointer-events:none; transition:opacity .18s ease;
+    padding:20px;
+  }
+  .modal-overlay.show{opacity:1; pointer-events:auto;}
+  .modal-box{
+    background:var(--surface); color:var(--ink); border-radius:14px; box-shadow:var(--shadow);
+    max-width:380px; width:100%; padding:22px 22px 18px; transform:translateY(10px) scale(.98);
+    transition:transform .18s ease; border:1px solid var(--line);
+  }
+  .modal-overlay.show .modal-box{transform:translateY(0) scale(1);}
+  .modal-box p{margin:0 0 18px; font-size:15.5px; line-height:1.6; color:var(--ink);}
+  .modal-actions{display:flex; justify-content:flex-end; gap:8px;}
+
+  /* Export preview — shown inline right below the toolbar that triggered it
+     (not a fixed/centered overlay): a sandboxed embed (e.g. Wix) can give an
+     iframe that is much taller than the visible viewport, so anything
+     positioned via position:fixed can land far outside what the visitor can
+     currently see, forcing an extra scroll to find it. Appearing in normal
+     document flow, right after the button just clicked, needs no scrolling. */
+  .export-preview-panel{
+    margin:14px 0 22px; padding:16px 18px; background:var(--surface); border:1px solid var(--line);
+    border-radius:12px; box-shadow:var(--shadow);
+  }
+  .export-preview-panel[hidden]{display:none;}
+  .export-preview-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;}
+  .export-preview-title{font-weight:700; font-size:16px; margin:0; color:var(--ink);}
+  .export-preview-close{
+    flex:none; border:none; background:var(--surface-2); color:var(--muted); border-radius:8px;
+    padding:5px 11px; font-size:13.5px; font-weight:600;
+  }
+  .export-preview-close:hover{background:var(--line); color:var(--ink);}
+  .export-preview-body{margin:0 0 12px; text-align:center;}
+  .export-preview-body img{max-width:100%; max-height:420px; border-radius:10px; border:1px solid var(--line); background:var(--ground);}
+  .export-preview-body textarea{width:100%; height:220px; box-sizing:border-box; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13px; padding:10px; border-radius:8px; border:1px solid var(--line); background:var(--ground); color:var(--ink); resize:vertical;}
+  .export-preview-hint{font-size:13.5px; color:var(--muted); line-height:1.6; margin:0;}
+
+  code.inline{font-family:var(--mono); background:var(--surface-2); padding:1px 6px; border-radius:5px; font-size:14px;}
+
+  footer.page-foot{
+    margin-top:40px; padding-top:20px; border-top:1px solid var(--line); font-size:13.5px; color:var(--muted);
+  }
+
+  @media (max-width:980px){
+    .app{flex-direction:column;}
+    .sidebar{display:none;}
+    .main{width:100%; min-width:0;}
+    .topbar{
+      display:flex; align-items:center; gap:6px; overflow-x:auto; position:sticky; top:0; z-index:20;
+      background:var(--surface); border-bottom:1px solid var(--line); padding:10px 12px; width:100%;
+    }
+    .topbar button{
+      flex:none; border:none; background:var(--surface-2); color:var(--ink-soft); font-size:14.5px; font-weight:600;
+      padding:8px 13px; border-radius:999px; white-space:nowrap;
+    }
+    .topbar button.active{background:var(--accent); color:#fff;}
+    .panel{padding:22px 16px 60px;}
+    .stat-row{grid-template-columns:repeat(2,1fr);}
+    .tool-grid{grid-template-columns:1fr;}
+    .cat-legend{grid-template-columns:1fr;}
+    .stepper{display:flex; flex-direction:column;}
+    .step{border-radius:0 !important; border-left:1px solid var(--line) !important; border-top:none;}
+    .step:first-child{border-top:1px solid var(--line);}
+    .step .arrow{display:none;}
+    .flow-row.cols-2, .flow-row.cols-3, .flow-row.cols-4{grid-template-columns:1fr;}
+    .profile-explainer .explainer-body{grid-template-columns:1fr;}
+    .p3-row-top{grid-template-columns:1fr;}
+    .p1-row{flex-direction:column;}
+    .p1-arrow{width:100%; height:26px;}
+    .p1-arrow svg{transform:rotate(90deg);}
+  }
+</style>
+
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg class="brand-icon" viewBox="0 0 40 40" fill="none">
+          <path d="M20 4C20 4 8 13 8 23a12 12 0 0024 0C32 13 20 4 20 4Z" fill="var(--accent-2-soft)" stroke="var(--accent-2)" stroke-width="1.6"/>
+          <path d="M20 36V18" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M20 24c-3-1-6 0-7-3M20 29c3-1 6.5.5 8-3" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div class="brand-title">自然解方工具箱</div>
+          <div class="brand-sub">流域 NbS 規劃互動平台</div>
+        </div>
+      </div>
+      <div class="theme-toggle" id="themeToggle">
+        <button data-theme="system">系統</button>
+        <button data-theme="light">淺色</button>
+        <button data-theme="dark">深色</button>
+      </div>
+    </div>
+    <div class="nav" id="nav"></div>
+    <div class="sidebar-foot">
+      <div class="foot-note">資料僅存於本機瀏覽器・不會上傳任何內容</div>
+    </div>
+  </nav>
+
+  <!-- Mobile topbar -->
+  <div class="topbar" id="topbar"></div>
+
+  <main class="main">
+
+    <!-- ============ OVERVIEW ============ -->
+    <section class="panel active" id="panel-overview">
+      <div class="panel-head">
+        <span class="eyebrow">Nature-based Solutions</span>
+        <h1>建立流域自然解方規劃方法與實務案例</h1>
+        <p class="lede">彙整國際自然解方（NbS）指引、指標模式、干預手段與案例文獻，並提供規劃流程圖，協助團隊在流域治理中發想、設計與檢核自然解方。</p>
+      </div>
+
+      <div class="stat-row" id="statRow"></div>
+
+      <div class="quote-block">
+        “Nature-based Solutions are actions to protect, sustainably manage and restore natural and modified ecosystems in ways that address societal challenges effectively and adaptively, to provide both human well-being and biodiversity benefits.”
+        <cite>IUCN 自然解方定義 — Cohen-Shacham, E., Walters, G., Janzen, C., &amp; Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland.</cite>
+      </div>
+
+      <div class="section-title" style="margin-bottom:12px;">三項互動工具</div>
+      <div class="tool-grid">
+        <button class="tool-card card" data-goto="flow">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h4m4 0h4m4 0h0" stroke-linecap="round"/><circle cx="4" cy="12" r="2.4"/><circle cx="12" cy="12" r="2.4"/><circle cx="20" cy="12" r="2.4"/></svg>
+          <h3>解方規劃流程圖</h3>
+          <p>五階段 NbS 導入流程 + 規劃要素圖，可直接輸入你的專案內容，並匯出為圖片存檔。</p>
+          <span class="go">開始規劃 →</span>
+        </button>
+        <button class="tool-card card" data-goto="database">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 10v10" stroke-linecap="round"/></svg>
+          <h3>工具箱資料庫</h3>
+          <p>131 項指引、指標模式、決策支援工具、干預手段與案例，可依類別、關鍵字與標籤查詢。</p>
+          <span class="go">瀏覽資料庫 →</span>
+        </button>
+        <button class="tool-card card" data-goto="match">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
+          <h3>相似解方比對</h3>
+          <p>描述你的挑戰或課題，在本機資料庫中比對相近的自然解方，全程於瀏覽器內運算。</p>
+          <span class="go">開始比對 →</span>
+        </button>
+      </div>
+
+      <details class="profile-explainer">
+        <summary>自然解方導入流程／簡表(一)(二)(三) 使用說明（原始模板說明）</summary>
+        <div class="explainer-body">
+          <div class="explainer-item">
+            <h4>自然解方導入流程｜NbS Introduction Process</h4>
+            <p>對應「解方規劃流程圖」頁面上半部的五階段流程圖。本表搭配「自然解方簡表(二)」使用，呼應 IUCN NbS 自我評估標準：先透過五階段釐清專案從啟動、了解系統到監測評估的整體節奏，再用簡表(二)逐格填入每個階段所需的規劃內容。</p>
+            <button class="link-btn" data-goto="flow">→ 前往規劃流程圖</button>
+          </div>
+          <div class="explainer-item">
+            <h4>自然解方簡表(一)｜NbS Profile I</h4>
+            <p>本表用於簡介應用之 NbS 如何「藉由保護、永續管理、恢復自然以及改變生態系解決社會挑戰、提供人類福祉與生物多樣性裨益」。呈現方式為一張簡單的「干預手段 → 社會挑戰」對應圖，適合在報告或簡報開頭快速說明一個 NbS 案例的整體邏輯，不需要填寫細節資料。</p>
+            <button class="link-btn" data-goto="p1">→ 前往填寫簡表(一)</button>
+          </div>
+          <div class="explainer-item">
+            <h4>自然解方簡表(二)｜NbS Profile II</h4>
+            <p>建立流域自然解方的規劃方法。本模板涵蓋了自然解方關鍵元素，呼應 IUCN NbS 自我評估標準。本表由規劃者角度設計，以利發想與設計 NbS、盤點考量事項，以及對外介紹。考量工具箱使用者──水文／水利專家──熟悉水文／水理模式，特將部分格子與模擬模式類比（見該頁面各欄位「模擬模式觀點」提示）。該頁面下方的「規劃要素圖」即為本表的互動填寫版本，每個欄位並標註對應的 IUCN NbS 全球標準編號與工具箱分類。</p>
+            <button class="link-btn" data-goto="flow">→ 前往規劃流程圖</button>
+          </div>
+          <div class="explainer-item">
+            <h4>自然解方簡表(三)｜NbS Profile III</h4>
+            <p>僅用於對一般民眾介紹 NbS 成果：以「案例背景與面臨之挑戰」「行動與目標」「行動後果：成效、引發問題或效益等」「案例中重要經驗與教訓（如案例成功／失敗的關鍵因素）」四個欄位，濃縮呈現完整規劃內容，適合公開分享、成果報告或對外簡報使用；細節規劃仍建議先以簡表(二)完成。</p>
+            <button class="link-btn" data-goto="p3">→ 前往填寫簡表(三)</button>
+          </div>
+        </div>
+      </details>
+
+      <div class="section-title" style="margin:30px 0 4px;">資料庫分類</div>
+      <p class="lede" style="margin-bottom:14px;">工具索引分為四大項，共六個子分類：</p>
+      <div class="cat-legend" id="catLegend"></div>
+
+      <footer class="page-foot">
+        資料來源：本計畫《自然解方工具箱說明與使用》(2024/12)、工具箱清單、NbS 展示模板（簡表一～三）。工具箱內容持續更新，若有疑義請以原始文獻與工具來源為準。
+      </footer>
+    </section>
+
+    <!-- ============ PROFILE I ============ -->
+    <section class="panel" id="panel-p1">
+      <div class="panel-head">
+        <span class="eyebrow">NbS Profile I</span>
+        <h1>自然解方簡表(一)</h1>
+        <p class="lede">用一張最簡單的「干預手段 → 社會挑戰」對應圖，快速說明一個 NbS 案例如何藉由保護、永續管理、恢復自然以及改變生態系來解決社會挑戰，並提供人類福祉與生物多樣性裨益。適合放在報告或簡報開頭作概念說明，內容會自動儲存在本機瀏覽器。</p>
+      </div>
+
+      <div class="quote-block">
+        “Nature-based Solutions are actions to protect, sustainably manage and restore natural and modified ecosystems in ways that address societal challenges effectively and adaptively, to provide both human well-being and biodiversity benefits.”
+        <cite>IUCN 自然解方定義 — Cohen-Shacham, E., Walters, G., Janzen, C., &amp; Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland.</cite>
+      </div>
+
+      <div class="flow-toolbar">
+        <button class="btn sm" id="btnCopyFromP2" style="border-color:var(--accent-2); color:#fff; background:var(--accent-2);">由簡表(二)帶入內容</button>
+        <button class="btn primary" id="btnExportPng-p1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round"/></svg>
+          匯出為圖片 (PNG)
+        </button>
+        <button class="btn" id="btnExportJson-p1">匯出 JSON</button>
+        <button class="btn" id="btnImportJson-p1">匯入 JSON</button>
+        <input type="file" id="fileImport-p1" accept="application/json" style="display:none;">
+        <button class="btn ghost" id="btnReset-p1">清除全部內容</button>
+        <div class="spacer"></div>
+        <div class="save-indicator"><span class="save-dot"></span><span>已自動儲存在本機</span></div>
+      </div>
+
+      <div class="export-preview-panel" id="exportPreviewPanel-p1" hidden>
+        <div class="export-preview-head">
+          <p class="export-preview-title" id="exportPreviewTitle-p1"></p>
+          <button class="export-preview-close" id="exportPreviewClose-p1" type="button">關閉 ✕</button>
+        </div>
+        <div class="export-preview-body" id="exportPreviewBody-p1"></div>
+        <p class="export-preview-hint" id="exportPreviewHint-p1"></p>
+      </div>
+
+      <div id="diagram-capture-p1" class="simple-diagram">
+        <div class="profile-title">
+          <h3>Nature-based Solution Profile I</h3>
+          <span>簡介 NbS 案例整體邏輯・不需填寫細節</span>
+        </div>
+        <div class="p1-row">
+          <div class="node hub">
+            <div class="node-label"><span>社會挑戰</span></div>
+            <div class="hint">面臨的社會挑戰是什麼？</div>
+            <textarea id="p1-field-challenge" data-field="challenge" placeholder="輸入社會挑戰…"></textarea>
+          </div>
+          <div class="p1-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14m0 0l-5-5m5 5l-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="node hub">
+            <div class="node-label"><span>干預手段</span></div>
+            <div class="hint">藉由保護、永續管理、恢復自然或改變生態系解決此挑戰的行動。</div>
+            <textarea id="p1-field-intervention" data-field="intervention" placeholder="輸入干預手段…"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FLOW / PLANNER ============ -->
+    <section class="panel" id="panel-flow">
+      <div class="panel-head">
+        <span class="eyebrow">Planning Flowchart</span>
+        <h1>解方規劃流程圖</h1>
+        <p class="lede">上半部為 NbS 導入的五個階段（點擊可展開說明），下半部為「自然解方簡表(二)」規劃要素圖 — 直接在方框中填入你的專案內容，內容會自動儲存在本機瀏覽器。也可以載入本計畫期末報告第五章「示範操作自然解方案例」的小／中／大尺度真實案例（蘭陽溪流域），作為填寫範例。</p>
+      </div>
+
+      <div class="flow-toolbar">
+        <div style="display:flex;align-items:center;gap:6px;border:1px solid var(--accent-2);border-radius:8px;padding:4px 4px 4px 12px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" stroke-width="1.8" style="width:15px;height:15px;flex:none;"><path d="M4 19V6a2 2 0 012-2h9l5 5v10a2 2 0 01-2 2H6a2 2 0 01-2-2Z" stroke-linejoin="round"/><path d="M14 4v5h5" stroke-linejoin="round"/><path d="M8 13h8M8 16.5h5" stroke-linecap="round"/></svg>
+          <select id="demoCaseSelect" style="border:none;background:transparent;font-size:14.5px;font-weight:600;color:var(--accent-2);padding:6px 2px;">
+            <option value="small">示範案例・小尺度｜安農溪上游河段</option>
+            <option value="medium">示範案例・中尺度｜蘭陽溪口野生動物棲地</option>
+            <option value="large">示範案例・大尺度｜蘭陽溪流域水土保持</option>
+          </select>
+          <button class="btn sm" id="btnLoadDemo" style="border-color:var(--accent-2); color:#fff; background:var(--accent-2);">載入</button>
+        </div>
+        <button class="btn primary" id="btnExportPng">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round"/></svg>
+          匯出為圖片 (PNG)
+        </button>
+        <button class="btn" id="btnExportJson">匯出 JSON</button>
+        <button class="btn" id="btnImportJson">匯入 JSON</button>
+        <input type="file" id="fileImport" accept="application/json" style="display:none;">
+        <button class="btn ghost" id="btnResetFlow">清除全部內容</button>
+        <div class="spacer"></div>
+        <div class="save-indicator"><span class="save-dot"></span><span id="saveText">已自動儲存在本機</span></div>
+      </div>
+
+      <div class="export-preview-panel" id="exportPreviewPanel" hidden>
+        <div class="export-preview-head">
+          <p class="export-preview-title" id="exportPreviewTitle"></p>
+          <button class="export-preview-close" id="exportPreviewClose" type="button">關閉 ✕</button>
+        </div>
+        <div class="export-preview-body" id="exportPreviewBody"></div>
+        <p class="export-preview-hint" id="exportPreviewHint"></p>
+      </div>
+
+      <div id="diagram-capture">
+        <div class="section-title" style="margin-bottom:10px;">第一部分・NbS 導入流程（五階段）</div>
+        <div class="stepper" id="stepper"></div>
+        <div id="stepDetails"></div>
+        <div class="loop-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3M15 4v3h-3M9 20v-3h3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          第 3、5 階段發現概念模型或行動方案需修正時，回到「了解系統」滾動調整。
+        </div>
+
+        <div class="section-title" style="margin:6px 0 10px;">第二部分・自然解方簡表(二) — 規劃要素圖</div>
+        <div class="profile-title">
+          <h3>Nature-based Solution Profile II</h3>
+          <span>呼應 IUCN NbS 自我評估標準・由規劃者角度發想與檢核</span>
+        </div>
+        <div class="grid-flow" id="plannerGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============ PROFILE III ============ -->
+    <section class="panel" id="panel-p3">
+      <div class="panel-head">
+        <span class="eyebrow">NbS Profile III</span>
+        <h1>自然解方簡表(三)</h1>
+        <p class="lede">僅用於對一般民眾介紹 NbS 成果：把完整的規劃內容濃縮成「挑戰、行動、結果、經驗與教訓」四個欄位，適合公開分享、成果報告或對外簡報使用。細節規劃請先以簡表(二)完成，內容會自動儲存在本機瀏覽器。</p>
+      </div>
+
+      <div class="flow-toolbar">
+        <button class="btn primary" id="btnExportPng-p3">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round"/></svg>
+          匯出為圖片 (PNG)
+        </button>
+        <button class="btn" id="btnExportJson-p3">匯出 JSON</button>
+        <button class="btn" id="btnImportJson-p3">匯入 JSON</button>
+        <input type="file" id="fileImport-p3" accept="application/json" style="display:none;">
+        <button class="btn ghost" id="btnReset-p3">清除全部內容</button>
+        <div class="spacer"></div>
+        <div class="save-indicator"><span class="save-dot"></span><span>已自動儲存在本機</span></div>
+      </div>
+
+      <div class="export-preview-panel" id="exportPreviewPanel-p3" hidden>
+        <div class="export-preview-head">
+          <p class="export-preview-title" id="exportPreviewTitle-p3"></p>
+          <button class="export-preview-close" id="exportPreviewClose-p3" type="button">關閉 ✕</button>
+        </div>
+        <div class="export-preview-body" id="exportPreviewBody-p3"></div>
+        <p class="export-preview-hint" id="exportPreviewHint-p3"></p>
+      </div>
+
+      <div id="diagram-capture-p3" class="simple-diagram">
+        <div class="profile-title">
+          <h3>Nature-based Solution Profile III</h3>
+          <span>僅用於對一般民眾介紹 NbS 成果</span>
+        </div>
+        <div class="p3-grid">
+          <div class="p3-row-top">
+            <div class="node">
+              <div class="node-label"><span>挑戰</span></div>
+              <div class="hint">案例背景與面臨之挑戰。</div>
+              <textarea id="p3-field-challenge" data-field="challenge" placeholder="輸入案例背景與面臨之挑戰…"></textarea>
+            </div>
+            <div class="node">
+              <div class="node-label"><span>行動</span></div>
+              <div class="hint">行動與目標。</div>
+              <textarea id="p3-field-action" data-field="action" placeholder="輸入行動與目標…"></textarea>
+            </div>
+            <div class="node">
+              <div class="node-label"><span>結果</span></div>
+              <div class="hint">行動後果：成效、引發問題或效益等。</div>
+              <textarea id="p3-field-outcome" data-field="outcome" placeholder="輸入行動後果…"></textarea>
+            </div>
+          </div>
+          <div class="node">
+            <div class="node-label"><span>經驗與教訓</span></div>
+            <div class="hint">案例中重要經驗與教訓，如案例成功／失敗的關鍵因素。</div>
+            <textarea id="p3-field-lessons" data-field="lessons" placeholder="輸入重要經驗與教訓…"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DATABASE ============ -->
+    <section class="panel" id="panel-database">
+      <div class="panel-head">
+        <span class="eyebrow">Toolbox Database</span>
+        <h1>工具箱資料庫</h1>
+        <p class="lede">收錄環境友善指引、指標與模式、決策支援系統、干預手段、案例文獻與資料庫共 131 項，可用關鍵字、分類與標籤查詢。</p>
+      </div>
+
+      <div class="db-controls">
+        <div class="search-row">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
+            <input type="text" id="dbSearch" placeholder="搜尋工具名稱、描述、編號或標籤…">
+          </div>
+        </div>
+        <div class="chip-row" id="catChips"></div>
+        <div class="tag-row" id="tagChips"></div>
+      </div>
+
+      <div class="result-meta" id="resultMeta"></div>
+      <div class="result-list" id="resultList"></div>
+    </section>
+
+    <!-- ============ SIMILARITY MATCH ============ -->
+    <section class="panel" id="panel-match">
+      <div class="panel-head">
+        <span class="eyebrow">Similarity Search</span>
+        <h1>描述你的挑戰或課題</h1>
+        <p class="lede">描述你面臨的挑戰或課題，系統會在本機資料庫中比對相近的自然解方（依關鍵字與字詞重疊程度評分，全部在你的瀏覽器內運算，不會上傳或送出任何內容）。</p>
+      </div>
+
+      <div class="card" style="padding:18px 20px; max-width:720px;">
+        <div class="field-group">
+          <label for="queryInput">描述你的挑戰或課題</label>
+          <textarea class="input" id="queryInput" rows="5" placeholder="例如：河岸城鎮在颱風季節有淹水風險，希望在保留生態棲地的前提下降低洪峰、並改善河口水鳥棲地品質…"></textarea>
+          <span class="fhint">越具體（地點特性、挑戰、期望效益）比對結果越精準。</span>
+        </div>
+        <button class="btn primary" id="btnLocalMatch" style="width:100%; justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
+          比對資料庫
+        </button>
+        <div id="localMatchWrap" style="margin-top:16px;"></div>
+      </div>
+    </section>
+
+    <!-- ============ AI ASSISTANT (bring your own key) ============ -->
+    <section class="panel" id="panel-ai">
+      <div class="panel-head">
+        <span class="eyebrow">AI Assistant・自備 API 金鑰</span>
+        <h1>AI 問答助理</h1>
+        <p class="lede">用自然語言描述你的規劃問題，由你指定的 AI 服務根據工具箱資料庫內容回答、建議適用的工具與理由。使用這個功能時，你的問題與工具箱摘要資料會直接從你的瀏覽器送到你選擇的 AI 服務——不會經過本站或任何其他伺服器；API 金鑰預設只存在本次瀏覽的記憶體中，除非你自己勾選「記住」，否則不會留在裝置上。</p>
+      </div>
+
+      <div class="card" style="padding:18px 20px; max-width:720px;">
+        <div class="field-group">
+          <label for="aiProvider">AI 服務商</label>
+          <select class="input" id="aiProvider">
+            <option value="gemini">Google Gemini</option>
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic Claude</option>
+          </select>
+          <span class="fhint">選擇你要使用的 AI 服務，並在下方貼上該服務的 API 金鑰。</span>
+        </div>
+        <div class="field-group">
+          <label for="aiApiKey">API 金鑰</label>
+          <input class="input" type="password" id="aiApiKey" placeholder="貼上你自己的 API 金鑰" autocomplete="off">
+          <span class="fhint">金鑰預設只存在這次瀏覽的記憶體中，關閉分頁或重新整理就會清除；直接送往你選擇的 AI 服務，不會經過任何其他伺服器。</span>
+          <label class="check-row" for="aiRememberKey">
+            <input type="checkbox" id="aiRememberKey">
+            <span>記住這把金鑰在這台裝置（會儲存在瀏覽器 localStorage，僅本機保存，不會送出）</span>
+          </label>
+          <button class="btn" type="button" id="btnForgetKey" style="margin-top:4px; align-self:flex-start;">清除已儲存的金鑰</button>
+        </div>
+        <div class="field-group">
+          <label for="aiModel">模型名稱（可選，留空使用預設值）</label>
+          <input class="input" type="text" id="aiModel" placeholder="">
+          <span class="fhint">AI 服務商常會更新或淘汰模型名稱。若送出後顯示「模型已不可用」之類的錯誤，可以按下方按鈕查詢你的金鑰目前能用的模型，點選即可帶入。</span>
+          <button class="btn" type="button" id="btnListModels" style="margin-top:8px; align-self:flex-start;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
+            查詢目前可用模型
+          </button>
+          <div id="modelListWrap" style="margin-top:10px;"></div>
+        </div>
+        <div class="field-group">
+          <label for="aiQuestion">你的問題</label>
+          <textarea class="input" id="aiQuestion" rows="5" placeholder="例如：我的計畫要處理都市排水不良、同時希望增加生物多樣性，工具箱裡有哪些工具或指標適合？為什麼？"></textarea>
+        </div>
+        <button class="btn primary" id="btnAskAI" style="width:100%; justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z"/></svg>
+          送出問題
+        </button>
+        <div id="aiAnswerWrap" style="margin-top:16px;"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <p id="modalMessage"></p>
+    <div class="modal-actions">
+      <button class="btn" id="modalCancelBtn">取消</button>
+      <button class="btn primary" id="modalConfirmBtn">確定</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/html2canvas.min.js"></script>
+<script>
+window.__NBS_TOOLBOX_DATA__ = [{"id":"A1-001","cat":"A","sub":"A1","name":"國際自然保護聯盟 (IUCN) NbS標準","desc":"評估自然解方干預措施(人為介入)是否符合國際公認的NbS原則(WCC-2016-Res-069)。免費；使用者自評。\nhttps://www.iucn.org/our-work/nature-based-solutions","tags":["自然解方","指引","框架"],"updated":"2024-10-08"},{"id":"A1-002","cat":"A","sub":"A1","name":"Natural Flood Management (NFM) 所需證據程度評估流程","desc":"出自Working with Natural Processes (WWNP) 計畫，此決策樹協助決策者需要多少證據才能有信心地支持 NFM(自然洪水管理)案例。\nhttps://www.gov.uk/flood-and-coastal-erosion-risk-management-research-reports/working-with-natural-processes-to-reduce-flood-risk#annexes","tags":["指引","框架"],"updated":"2024-10-08"},{"id":"A1-003","cat":"A","sub":"A1","name":"以生態系為基礎的調適 (ecosystem based adaptation,EbA)","desc":"IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)。主要為調適氣候變遷衝擊，對NbS來說，可以參考其維護生態系服務的方法與概念作為設計基礎；是一種基於自然的解決方案，利用生物多樣性和生態系統服務來減少脆弱性並增強對氣候變遷的抵禦能力。 https://iucn.org/our-work/topic/ecosystem-based-adaptation","tags":["指引","框架"],"updated":"2024-10-08"},{"id":"A1-004","cat":"A","sub":"A1","name":"生態防減災 (ecosystem-based disaster risk reduction,Eco-DRR)","desc":"強化災害風險治理(disaster risk governance)為主要目的。對NbS來說，可以參考其永續的經營管理及保育/復育生態系的方法與概念作為設計基礎。是指透過永續的經營管理、保育或復育生態系以減少災害風險。\nhttps://www.unep.org/topics/disasters-and-conflicts/disaster-risk-reduction/ecosystem-based-disaster-risk-reduction","tags":["指引","框架"],"updated":"2024-10-08"},{"id":"A1-005","cat":"A","sub":"A1","name":"綠色基礎設施 (green infrastructure,GI)","desc":"透過提供軟性工程方面之概念、規劃與建議加入NbS設計。是一種保護、恢復或模仿自然水循環的水管理方法，可以有效的提高社區安全和生活品質，並達到永續發展。旨在「促進生態系統健康和復原力，為生物多樣性保護做出貢獻並增強生態系統服務」(Naumann et al. 2011)。GI 包括城市區域內部、周圍和城市之間所有空間尺度的多功能生態系統的所有自然、半自然和人造網絡。綠色基礎設施概念強調城市和城郊綠地的品質和數量、它們的多功能性以及棲息地之間相互聯繫的重要性 (Tzoulas et al., 2007)。IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)，相關術語：Ecological infrastructure, blue infrastructure.\n\nTzoulas, K., Korpela, K., Venn, S., Yli-Pelkonen, V., Kazmierczak, A., Niemela, J. and James, P. (2007). Promoting ecosystem and human health in urban areas using Green Infrastructure: A literature review. Landscape and Urban Planning 81(3): 167–178.\nCohen-Shacham, E., Walters, G., Janzen, C., & Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland, 97, 2016-2036.\nNaumann, S., McKenna, D. & Kaphengst, T. (2011). Design, implementation and cost elements of Green Infrastructure projects, Brussels. \n\nhttps://www.americanrivers.org/what-is-green-infrastructure/\nhttps://www.epa.gov/green-infrastructure","tags":["指引","框架"],"updated":"2024-10-08"},{"id":"A1-006","cat":"A","sub":"A1","name":"藍色基礎設施 (blue infrastructure,BI)","desc":"提供軟性工程方面之概念、規劃與建議加入NbS設計。主要關注於城市水利基礎設施，包括池塘、湖泊、溪流河和雨水供應等。\nhttps://greenblue.com/gb/about-us/why-green-and-blue/","tags":["指引","框架"],"updated":"2024-10-08"},{"id":"A1-007","cat":"A","sub":"A1","name":"藍綠基礎設施/藍綠建設 (green-blue infrastructure,GBI)","desc":"提供軟性工程方面之概念、規劃與建議加入NbS設計。將綠色 （植物和樹木）與藍色（水道、池塘、湖泊和雨水排放）元素結合，為城市和氣候變遷提供永續且自然的解決方案。\nhttps://greenblue.com/gb/about-us/why-green-and-blue/","tags":["指引","框架"],"updated":"2024-10-08"},{"id":"A1-008","cat":"A","sub":"A1","name":"城市林務 (urban forestry,UF)","desc":"提供軟性工程方面之概念、規劃與建議加入NbS設計。是指以樹木對城市運作帶來的貢獻為重心的樹木栽培和管理模式，包括:城市公園、行道樹、花園、河流和沿海長廊、綠道、河流廊道、濕地、自然保護區、樹木防護帶以及前工業場地的工作樹等。https://www.fs.usda.gov/managing-land/urban-forests","tags":["指引","框架"],"updated":"2024-10-08"},{"id":"A1-009","cat":"A","sub":"A1","name":"永續城市排水系統 (sustainable urban drainage systems,SuDS)","desc":"是一種藉由模仿自然排水系統達到降低流量、增加儲水能力和減少污染物向水環境的輸送，以完成減少地表水氾濫、改善水質並提高環境的舒適度和生物多樣性價值等多項目標。\nhttps://www.bgs.ac.uk/geology-projects/suds/","tags":["指引","框架"],"updated":"2024-10-10"},{"id":"A1-010","cat":"A","sub":"A1","name":"生態工程 (ecological engineering,EE)","desc":"旨在恢復受到人類活動嚴重干擾的生態系統以及開發具有人類和生態價值的新的永續生態系統 (Mitsch, 2012)。IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)，相關術語：基於自然的工程、生態系統工程物種、生態工程、基因工程、生物監測、生物化學工程、自然工程、生態技術。\n\nMitsch, W. J. (2012). What is ecological engineering?. Ecological engineering, 45, 5-12.","tags":["指引","框架"],"updated":"2024-10-08"},{"id":"A1-011","cat":"A","sub":"A1","name":"最佳管理作業 (Best Management Practices,BMPs)","desc":"是用水效率最佳管理作業(BMP)的彙編，用於幫助商業和機構設施了解和管理其用水情況、建立有效的用水管理計劃，並確定可以減少設施用水的項目和做法。\nhttps://www.epa.gov/watersense/best-management-practices","tags":["指引","框架"],"updated":"2024-10-10"},{"id":"A1-012","cat":"A","sub":"A1","name":"低衝擊開發 (low-impact design,LID)","desc":"是一種用於管理雨水徑流的設計方法，主要透過小型、具有成本效益的景觀特徵來處理雨水，強調保護和利用現場自然特徵以保護水質且注重永續性。\nhttps://www.waikatodistrict.govt.nz/services-facilities/water/stormwater/water-sensitive-design---low-impact-development","tags":["指引","框架"],"updated":"2024-10-08"},{"id":"A1-013","cat":"A","sub":"A1","name":"水資源敏感的都市設計 (water-sensitive urban design,WSUD)","desc":"是一套可用於永續管理水的原則，這些原則的應用提供了一種具有成本效益的方法，可以最大限度地減少開發對水道的影響。\nhttps://waterbydesign.com.au/wsud","tags":["指引","框架"],"updated":"2024-10-08"},{"id":"A1-014","cat":"A","sub":"A1","name":"戰略環境評估 (Strategic Environmental Assessments, SEA)","desc":"SEA 為系統的決策支持過程，旨在確保在制定計劃、政策和方案時適當考慮環境和其他永續性方面；在許多國家被廣泛用作戰略決策的輔助工具。SEA 關鍵步驟包括 （a） 為範圍界定和篩選進行初步利益相關者諮詢;（b） 通過使用相關的分析工具等方式，以知識為基礎的開發;（c） 利用利益攸關方和專家的意見，確定問題的優先次序並分析替代方法;（d） 制定行動計劃和管理框架，包括進一步磋商、知識差距、方案評估和實施的方法;以及 （e） 制定實施和監測框架。與計劃和計劃不同，政策制定過程通常會在更長的時間內非正式地進行。在加拿大和荷蘭，戰略環境評估系統已經到位，專注於將環境因素納入政策制定的正式過程。\nAhmed, K., Mercier, J.R., & Verheem, R. (2005). Strategic environmental assessment - concept and practice.","tags":["指引","框架","環境評估"],"updated":"2024-10-08"},{"id":"A1-015","cat":"A","sub":"A1","name":"生態復育 (Ecological Restoration, ER)","desc":"旨在「協助恢復已退化、損壞或破壞的生態系統的過程。(Society for Ecological Restoration, 2004)」。修復或增強受干擾或環境變化影響的生態系統的結構和功能（Suding，2011）。生態恢復專案有不同的目標，例如為稀有物種提供棲息地;為選定的物種提供多樣化的基因庫；提供特定的天然產品和服務以造福社會。IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)，相關術語包含：生態系功能恢復、棲息地恢復、干預生態學、緩解、開墾、重建、恢復、重新造林、恢復、結構恢復、植被恢復。\n\nSociety for Ecological Restoration (2004). Ecological Restoration Primer [online document] \nwww.ser.org/resources/resources-detail-view/ser-international-primer-on-ecological\nrestoration.\nCohen-Shacham, E., Walters, G., Janzen, C., & Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland, 97, 2016-2036.","tags":["NbS","干預","解方","框架","生態"],"updated":"2024-10-08"},{"id":"A1-016","cat":"A","sub":"A1","name":"森林地景恢復 (Forest Landscape Restoration, FLR)","desc":"森林景觀恢復是在被砍伐或退化的森林景觀中恢復生態功能和增強人類福祉的長期過程。IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)，相關術語包含，Forest rehabilitation, forest restoration.\n\nCohen-Shacham, E., Walters, G., Janzen, C., & Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland, 97, 2016-2036.","tags":["NbS","干預","解方","框架","生態"],"updated":"2024-10-08"},{"id":"A1-017","cat":"A","sub":"A1","name":"自然基礎設施 (Natural Infrastructure, NI)","desc":"旨在「促進生態系統健康和復原力，為生物多樣性保護做出貢獻並增強生態系統服務」(Naumann et al. 2011)。NI被定義為「戰略性規劃和管理的自然土地網络，例如森林和濕地、工作景觀和其他開放空間，以保護或增強生態系統的價值和功能，併為人類提供相關利益」。IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)，相關術語：Ecological infrastructure, blue infrastructure.\n\nCohen-Shacham, E., Walters, G., Janzen, C., & Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland, 97, 2016-2036.\nNaumann, S., McKenna, D. & Kaphengst, T. (2011). Design, implementation and cost elements of Green Infrastructure projects, Brussels. http://ec.europa.eu/environment/enveco/biodiversity/pdf/GI_DICE_FinalReport.pdf.","tags":["NbS","干預","解方","框架","生態"],"updated":"2024-10-08"},{"id":"A1-018","cat":"A","sub":"A1","name":"基於生態系統的管理 (Ecosystem-based Management, MbNgt)","desc":"以科學為基礎的綜合自然資源管理方法，旨在維持生態系統的健康、復原力和多樣性，同時允許人類可持續地利用他們提供的商品和服務。IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)，相關術語包含：基於生態系統的土地管理方法(Ecosystem-based approach to land management)、生態系統管理(ecosystem management)、基於生態系統的漁業管理(ecosystem based fisheries management)、基於海洋生態系統的管理(marine ecosystem-based management)、基於生態系統的（海洋和沿海）管理方法 (ecosystem based approach to (marine and coastal) management)。\n\nCohen-Shacham, E., Walters, G., Janzen, C., & Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland, 97, 2016-2036.","tags":["NbS","干預","解方","框架","生態"],"updated":"2024-10-08"},{"id":"A1-019","cat":"A","sub":"A1","name":"基於生態系統的適應 (Ecosystem-based Adaptation, MbA)","desc":"利用生物多樣性和生態系統服務作為整體適應戰略的一部分，幫助人們適應氣候變化的不利影響。旨在通過良好的生態系統管理行動幫助脆弱群體/社區調適氣候變遷。IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)，相關術語包含：基於生態系統的適應方法(Ecosystem-based approach to adaptation)，基於社區的適應(community-based adaptation)。\n\nCohen-Shacham, E., Walters, G., Janzen, C., & Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland, 97, 2016-2036.","tags":["NbS","干預","解方","框架","生態"],"updated":"2024-10-08"},{"id":"A1-020","cat":"A","sub":"A1","name":"基於生態系統的減緩 (Ecosystem-based Mitigation, MbM)","desc":"增強減排對生物多樣性的益處，並避免其帶來的負面影響，同時考慮到確保當地居民和社區充分有效參與相關政策制定和實施過程的必要性（在適當情況下）。加強對易受氣候變化影響或對氣候變化緩解有貢獻的海洋和沿海棲息地的保護、永續利用和恢復。IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)，相關術語包含：基於生態系統的緩解方法 (Ecosystem-based approach to mitigation)\n\nCohen-Shacham, E., Walters, G., Janzen, C., & Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland, 97, 2016-2036.","tags":["NbS","干預","解方","框架","生態"],"updated":"2024-10-08"},{"id":"A1-021","cat":"A","sub":"A1","name":"基於生態系統的降低風險 (Ecosystem-based Disaster Risk Reduction, Eco-DRR)","desc":"永續管理、保護和恢復生態系統，以通過減輕災害風險來提供服務，從而降低災害風險並增強生活(livelihood)韌性。IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)，相關術語包含：自然基礎設施風險管理 (Natural infrastructure for risk management)、自然基礎設施風險減少 (Natural infrastructure for risk reduction)、基於自然的減災方案 (Nature-based solutions for DRR)、促進韌性的生態系統 (Ecosystems for resilience)、基於生態系統的災害風險減少和氣候變化適應 (Ecosystem-based disaster risk reduction and climate change adaptation)、基於自然的災害風險減少 (Nature-based disaster risk reduction)、無悔的災害風險減少 (No-regret disaster risk reduction)。\n\nCohen-Shacham, E., Walters, G., Janzen, C., & Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland, 97, 2016-2036.","tags":["NbS","干預","解方","框架","生態"],"updated":"2024-10-08"},{"id":"A1-022","cat":"A","sub":"A1","name":"氣候調適服務 (Climate Adaptation Services, CAS)","desc":"使人們得益於透過來自生態系調節(moderate)和調適(adapt)氣候變遷及變異的能力，而提升社會應對變化能力。IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)，相關術語：調適服務 (Adaptation services)、氣候變遷調適服務 (Climate change adaptation services)。\nCohen-Shacham, E., Walters, G., Janzen, C., & Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland, 97, 2016-2036.","tags":["NbS","干預","解方","框架","生態"],"updated":"2024-10-08"},{"id":"A1-023","cat":"A","sub":"A1","name":"區域為基礎的保護 (Area-based Conservation, AbC)","desc":"IUCN 報告書提及的 NbS 概念之一 (Cohen-Shacham et al., 2016)，屬於NbS方法中，生態系保護方法(Ecosystem protection approach)。基於區域的保育工作(如保護區、或其他有效的區域保護措施)，包括保護區和其他有效的區域保育措施，可能使生態系延伸並多樣化(Maxwell et al, 2020)。\n\nCohen-Shacham, E., Walters, G., Janzen, C., & Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland, 97, 2016-2036.\nMaxwell, S.L., Cazalis, V., Dudley, N. et al. Area-based conservation in the twenty-first century. Nature 586, 217–227 (2020). https://doi.org/10.1038/s41586-020-2773-z","tags":["NbS","干預","解方","框架","生態"],"updated":"2024-10-08"},{"id":"B1-001","cat":"B","sub":"B1","name":"MODFLOW","desc":"(https://water.usgs.gov/water-resources/software/MODFLOW-6/) (MODular three-dimensional groundwater FLOW model)軟體是由美國地質調查所（USGS）發展之地下水數值模式，為有限差分法開發之三維飽和地下水流數值模式。","tags":["模擬程式","地下水"],"updated":"2024-10-08"},{"id":"B1-002","cat":"B","sub":"B1","name":"條件選擇方法","desc":"(Contingent Choice Method) 常用於環境經濟學和自然資源管理領域，評估人們對於特定生態系統服務的價值。「條件選擇方法」可用於估計幾乎任何生態系統或環境服務的經濟價值，並且可用於估計非使用價值和使用價值。與或有估值一樣，它是一種假設方法…它要求人們根據假設的場景做出選擇。然而，它與或有估值不同，因為它不直接要求人們陳述他們的價值觀。相反地，價值觀是從人們所做的假設選擇或權衡中推斷出來的。(Upadhyay, 2024)","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-10-08"},{"id":"B1-003","cat":"B","sub":"B1","name":"蘊含能源EmB","desc":"蘊含能源(Embodied energy, EmB)是生產任何商品或服務所需的所有能源的總和，視為該能源已包含或「體現」在產品本身。該概念可用於確定能源生產或節能設備的有效性，或建築物的「實際」重置成本，並且由於能源輸入通常會導致溫室氣體排放，因此可用於確定產品是否有助於或減輕溫室氣體排放","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-10-08"},{"id":"B1-004","cat":"B","sub":"B1","name":"EmA","desc":"(Emergy analysis, EmA) 評估系統中各種資源和產品的價值，並將其轉換為等效的太陽能。","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-10-08"},{"id":"B1-005","cat":"B","sub":"B1","name":"HEC-RAS","desc":"穩態/非穩態流河流水力學模擬，可執行一維定量流、一二維變量流水理模式演算，另可進行輸砂及動床模式演算等功能，環境分析可執行河川水溫及水質等模式演算。(https://www.hec.usace.army.mil/)","tags":["模擬程式","水文","水理"],"updated":"2024-10-08"},{"id":"B1-006","cat":"B","sub":"B1","name":"SRH-2D","desc":"二維水理動床演算。美國填海局開發的水力模型，它結合了非常強大和穩定的數值方案以及無縫的乾濕算法。該模型使用的柔性網格可以包含任意形狀的單元（四邊形和三角形單元），從而提高了求解精度，同時最大程度地減少了計算需求。SRH-2D建模應用程序包括具有河流結構，彎道，河川，支渠和農業收益以及辮狀佢係統的流量。SRH-2D非常適合對局部流速，渦流模式，流動再循環，橫向速度變化以及堤岸和堤壩上的流量進行建模。(https://www.aquaveo.com/software/sms-srh)","tags":["模擬程式","水文","水理"],"updated":"2024-10-08"},{"id":"B1-007","cat":"B","sub":"B1","name":"SWMM","desc":"SWMM模式為美國環保署目前在全世界廣泛應用於城市地區的暴雨洪水、下水道、排污管道以及其它排水系統的規劃、分析和設計。該亦可同時考慮地下水、地表入滲與蒸發等因子，新的版本更納入生態滯留池、入滲溝、多孔鋪面、雨撲滿與草溝等低衝擊開發設施(LID)之計算模組進行逕流模擬。","tags":["模擬程式","水文","水理"],"updated":"2024-10-08"},{"id":"B1-008","cat":"B","sub":"B1","name":"FLO-2D","desc":"淹水分析模式之商用軟體(https://flo-2d.com/flo-2d-pro/)。FLO-2D 由美國 FLO-2D 公司發展之二維洪水災害模擬模式，為美國聯邦急難管理署（FEMA）認可之二維模式，可用於都市淹水、洪水平原管理、工程風險設計、不規則形狀河道水理演算、橋樑涵洞水理演算與滯洪池水理演算，可以處理漫地流、都市水文，泥流及土石流。","tags":["模擬程式","水文","水理"],"updated":"2024-10-08"},{"id":"B1-009","cat":"B","sub":"B1","name":"SOBEK","desc":"商用水理模擬軟體(https://www.deltares.nl/en/software-and-data/products/sobek-suite)。SOBEK是由荷蘭 WL|Delft Hydraulics 所發展，是一個功能強大的模擬系統工具，用於包含了洪水預測、排水系統最佳化、灌溉系統控制、水庫操作、下水道設計、地下水控制、河床管理、水質控制等工作(https://sobek.softhome.com.tw/?page_id=908)。","tags":["模擬程式","水文","水理"],"updated":"2024-10-08"},{"id":"B1-010","cat":"B","sub":"B1","name":"NTU-2DFIM","desc":"臺大都會區淹水模式。臺大都會區淹水模式NTU-2DFIM可考慮雨水下水道、河川排水渠道及地表漫地流等不同流況，進行演算及整合。下水道部份引用美國環保署(U.S. EPA)所研發之暴雨經理模式(Strom Water Management Model, SWMM)之地表逕流(RUNOFF)及幹線輸水(EXTRAN)模組進行演算。(https://dananddian.weebly.com/)","tags":["模擬程式","水文","水理"],"updated":"2024-10-08"},{"id":"B1-011","cat":"B","sub":"B1","name":"Tank model","desc":"透過降雨量進行推求河川流量。水規署有內部規劃業務使用之水筒模式軟體。(https://www.wrap.gov.tw/cp.aspx?n=26283)","tags":["模擬程式","水文","水理"],"updated":"2024-10-08"},{"id":"B1-012","cat":"B","sub":"B1","name":"WRASIM","desc":"通用性廣域水資源供需利用模擬模式。係針對台灣地區特有之水資源環境，以線性最小成本網流規劃為理論基礎所發展的一套通用性廣域水資源運用分析模式(周乃昉 & 吳嘉文, 2010) 。本模式係由成功大學開發，並與水利署水利規劃分署經數年之驗證應用，為水利署目前主要的水資源規劃分析軟體。(https://www.wrap.gov.tw/cp.aspx?n=39935)","tags":["模擬程式","水文","水理"],"updated":"2024-10-08"},{"id":"B1-013","cat":"B","sub":"B1","name":"SWAT","desc":"SWAT (Soil & Water Assessment Tool) 為免費流域水文模擬工具，可用於在單一小集水區(a small watershed)到流域尺度 (river basin-scale)地表水和地下水的品質和流量模擬，並預測土地利用、土地管理實務和氣候變遷對環境的影響。 SWAT廣泛應用於水土流失防治、非點源污染控制及流域區域管理評估。(https://swat.tamu.edu/)\n\n SWAT 模型在全球範圍內被廣泛用於模擬水文過程，它具有空間離散化的靈活性，可以評估局部、區域和全球尺度的空間。","tags":["模擬程式","水文","水質"],"updated":"2024-10-08"},{"id":"B1-014","cat":"B","sub":"B1","name":"TOPMODEL","desc":"Beven及Kirkby於1979年所提出的集水區水文模式。TOPMODEL（Topography Model）爲一降雨逕流模式；採用變原區域理論(variable source area concept)模擬逕流。其概念簡單，參數少，適合坡地集水區，廣泛使用於流量預測與分析、輔助水質預測、網格大小之分析、地形對水流之影響。(https://csdms.colorado.edu/wiki/Model:TOPMODEL)","tags":["模擬程式","水文","水理","地下水"],"updated":"2024-10-08"},{"id":"B1-015","cat":"B","sub":"B1","name":"GWLF","desc":"GWLF (General Watershed Loading Function) 為集水區水量、水質模擬與分析模式。","tags":["模擬程式","水文","水質"],"updated":"2024-10-08"},{"id":"B1-016","cat":"B","sub":"B1","name":"CLUE","desc":"CLUE（Conversion of Land Use and its Effects）模型是一種具有空間明確性的土地利用變化模型，旨在模擬未來的土地利用和土地覆蓋變化(Veldkamp and Fresco 1996)，包括城市擴展、森林砍伐、土地拋荒和農業集約化。CLUE模型是一個動態建模框架，根據土地利用轉換的生物物理和人類驅動因素進行量化模擬。CLUE模型的不同版本包括CLUE-S、CLUE-Scanner和Dyna-CLUE模型。\n\n* Veldkamp, A., and L. O. Fresco. \"CLUE: a conceptual model to study the conversion of land use and its effects.\" Ecological modelling 85.2-3 (1996): 253-270.\n* https://en.wikipedia.org/wiki/CLUE_model","tags":["土地利用變遷模擬","模式","地理資訊系統"],"updated":"2024-10-08"},{"id":"B1-017","cat":"B","sub":"B1","name":"IUCN 線上 NbS 自我評估工具","desc":"IUCN 基於自然的解決方案自我評估全球標準是一個線上工具，由八個標準和相關指標組成，涉及永續發展（生物多樣性、經濟和社會）和彈性專案管理的支持。線上工具本身由標準和相關指南組成，指導使用者進行自我評估：\n1.設計新的基於自然的解決方案；\n2.透過識別空缺(gaps)擴大試驗點(upscale pilots)；\n3.驗證過去的案立和未來的提案。\nNbS線上自我評估工具由IUCN管理，它取代了迄今為止使用的Excel工具。 IUCN 在任何時候都不會參與評估過程，這仍然是一個自我排名過程。\n(https://nbs-sat.iucn.org/)","tags":["自我評估","NbS","檢核"],"updated":"2024-10-08"},{"id":"B1-018","cat":"B","sub":"B1","name":"土壤中單位面積、單位時間內植被和土壤中移除或儲存的碳總量","desc":"對城市地區土壤和植被中儲存的碳進行核算，可以說明自然綠地的狀況、自由表面積的總量以及所考察地區的植被總量。碳儲存和固存的措施也為減緩氣候變遷以及當地土地使用、規劃和管理決策的影響提供了切實的連結。值得注意的是，不同類型的自然解決方案在固碳和儲存能力方面存在很大的差異。\nEuropean Commission,2021,EVALUATING THE IMPACT OF NATURE-BASED SOLUTIONS","tags":["氣候復原力","指標","氣候韌性"],"updated":"2024-10-08"},{"id":"B1-019","cat":"B","sub":"B1","name":"與建築能源消耗有關而避免排放的二氧化碳","desc":"建築能源消耗是溫室氣體（GHG）排放的一部分，在城市環境中可能受到自然解決方案影響。\nEuropean Commission,2021,EVALUATING THE IMPACT OF NATURE-BASED SOLUTIONS","tags":["氣候復原力","指標","氣候韌性"],"updated":"2024-10-08"},{"id":"B1-020","cat":"B","sub":"B1","name":"日最高溫的平均值（TX）","desc":"在特定期間內觀察到的日最高溫平均值，可以是特定的年份或經過數年的特定期間。\nEuropean Commission,2021,EVALUATING THE IMPACT OF NATURE-BASED SOLUTIONS","tags":["氣候復原力","指標","氣候韌性"],"updated":"2024-10-08"},{"id":"B1-021","cat":"B","sub":"B1","name":"日最低溫的平均值（TN）","desc":"在特定期間內觀察到的日最低溫平均值，可以是特定年份的，或經過數年的特定期間。建議用於檢測夜間的Tº增量。這個指標可以分析夜間溫度對睡眠干擾的影響\nEuropean Commission,2021,EVALUATING THE IMPACT OF NATURE-BASED SOLUTIONS","tags":["氣候復原力","指標","氣候韌性"],"updated":"2024-10-08"},{"id":"B1-022","cat":"B","sub":"B1","name":"熱浪發生率","desc":"熱浪是指連續幾天的高溫天氣，其中長度和峰值溫度都很重要。\nEuropean Commission,2021,EVALUATING THE IMPACT OF NATURE-BASED SOLUTIONS","tags":["氣候復原力","指標","氣候韌性"],"updated":"2024-10-08"},{"id":"B1-023","cat":"B","sub":"B1","name":"徑流係數","desc":"隨著城市的發展和擴張，由於建築、道路、街道、停車場等的建設，城市地區的不透水表面的範圍在不斷增加，造成城市地區的徑流增大，這也可能最終導致洪水。許多因素都在影響地表徑流量，包括土壤特徵、土地利用和植被、山坡以及降雨持續時間、降雨量和強度等風暴雨特性（Sitterson et al., 2017）。European Commission,2021,EVALUATING THE IMPACT OF NATURE-BASED SOLUTIONS","tags":["水資源管理","指標"],"updated":"2024-10-08"},{"id":"B2-001","cat":"B","sub":"B2","name":"InVEST","desc":"Integrated Valuation of Ecosystem Services and Tradeoffs (https://naturalcapitalproject.stanford.edu/software) 決策支援工具，描繪製和評估來自大自然的商品和服務，以維持和滿足人類生活。為免費軟體，可用於生態系服務之量化。\n\nInVEST 模型在全球範圍內被廣泛使用，優點包括：\n* 資料需求低：InVEST 模型可以使用免費獲取的開源數據，例如分辨率為 30 米 x 30 米的土地利用/土地覆蓋數據和氣候數據。\n* 易於使用：InVEST 模型不需要專業知識，即使是非專業人士也可以輕鬆使用。\n* 多功能性：InVEST 模型可以評估多種生態系統服務，例如水質、土壤侵蝕、碳固存、生物多樣性保護、營養物質和農產品等。","tags":["決策支援工具","生態系服務","生態系影響"],"updated":"2024-10-08"},{"id":"B2-002","cat":"B","sub":"B2","name":"MARXAN","desc":"(https://marxansolutions.org/)決策支援工具，幫助決策者找到解決保護規劃問題的良好解決方案(地點優選)","tags":["決策支援工具","策略最佳化","干預策略","人為介入決策"],"updated":"2024-10-08"},{"id":"B2-003","cat":"B","sub":"B2","name":"LUCI","desc":"Land Utilisation Capability Indicator (LUCI，https://github.com/lucitools/LUCI_SEEA) 決策支援工具，可對生態系統服務狀況進行建模，並確定土地利用介入或變化可能改善生態系統服務的位置","tags":["決策支援工具","策略最佳化","干預策略","人為介入決策"],"updated":"2024-10-08"},{"id":"B2-004","cat":"B","sub":"B2","name":"LCA","desc":"(Life cycle assessment)評估產品或系統的整個生命週期過程中量化潛在的環境影響。大致上可分為四步驟：目標與範圍界定；生命週期庫存分析；生命週期影響評估；解釋結果。","tags":["決策資源工具","生態系影響","自我評估工具"],"updated":"2024-10-08"},{"id":"B2-005","cat":"B","sub":"B2","name":"監控規劃器 (Monitoring Planner)","desc":"the River Restiration Centre (RRC) 開發了監控規劃器來幫助您設定、建置和組織監控策略。監控規劃器是免費提供的，可以在下面連結下載(https://www.therrc.co.uk/monitoring-planner)，但如果您需要有關如何使用它的任何幫助和支持，請聯絡 RRC。監控規劃器由一個帶有一系列標題的表格組成，您可以在其中填寫每個項目目標的監控詳細信息，如下圖所示。在Excel 電子表格的第一個標籤上，您將找到“監測規劃器”，在第二個選項卡上，我們提供瞭如何填寫規劃器的範例。專案中投入使用（ CRF），並且很可能被 Natural England 和 SEPA 用於其大規模恢復專案。\n\n專案初期，PRC監控規劃器可以幫助你規劃監測，並考慮以下關鍵問題。\n*你為什麼要進行這個專案？專案目標是什麼？\n*你的監測目標是什麼？你想觀察什麼？\n*你將如何收集數據？使用什麼評估方法？\n*你是否有任何項目前基線數據的訪問權限？\n*你何時收集數據？\n*誰將監測數據？誰將評估數據？\n*監測及其評估的成本是多少？\n*你的信心程度如何？","tags":["河川復育","監測","適應性管理"],"updated":"2024-10-08"},{"id":"B2-006","cat":"B","sub":"B2","name":"SMART 監測法","desc":"監測應主要專注於認可專案目標已達成。《實用河川復育評估監測選項指南》（Practical River Restoration Appraisal Guidance for Monitoring Options, PRAGMO）（RRC 2012）中解釋SMART方法：\n*具體（Specific）：目標應針對特定的改善領域或滿足特定需求。\n*可衡量（Measurable）：目標必須是可量化的，或者至少允許可衡量的進展。\n*可達成（Attainable）：目標應該是現實的，並基於他人成功的證據進行評估。\n*現實（Realistic）：應根據可用資源（資金、人員、時間）和現有限制來制定目標。\n*時限（Time-bound）：目標必須有截止日期或明確的結束時間。","tags":["河川復育","監測","適應性管理"],"updated":"2024-10-10"},{"id":"B2-007","cat":"B","sub":"B2","name":"適應性管理","desc":"適應性管理可以是被動的，也可以是主動的。被動適應性管理使用基於現有知識的預測模型來為管理決策提供資訊。隨著新知識的獲得，模型會更新，管理決策也會隨之調整。主動適應性管理涉及完全改變管理策略以測試新的假設。因此，被動適應性管理的目標是改善現有的管理方法，而主動適應性管理的目標是透過實驗學習以確定最佳管理策略。","tags":["適應性管理"],"updated":"2024-10-08"},{"id":"C1-001","cat":"C","sub":"C1","name":"Leaky Barriers","desc":"在旱地溪流中搭建的低成本、低技術含量的leaky barriers以達到類似海狸壩的效果。\nWhite House Council on Environmental Quality, White House Office of Science and Technology Policy, White House Office of Domestic Climate Policy, 2022. Nature-Based Solutions Resource Guide. Washington, D.C.","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-002","cat":"C","sub":"C1","name":"建小型天然蓄水區","desc":"利用在上游集水區創建小型天然蓄水區並拓寬低地的河流廊道及在洪氾區重新連接來為河流提供空間，進而改善洪水問題。EEA Report, No 01/2021","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-003","cat":"C","sub":"C1","name":"拓寬低地的河流廊道","desc":"利用在上游集水區創建小型天然蓄水區並拓寬低地的河流廊道及在洪氾區重新連接來為河流提供空間，進而改善洪水問題。EEA Report, No 01/2021","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-004","cat":"C","sub":"C1","name":"增加洪氾區蓄水量","desc":"在倫敦-梅耶斯布魯克河修復計畫中藉由增加洪氾區蓄水量、回水創造及永續排水系統等 Nbs 相關策略使河川復育，藉此降低鄰近住宅區和公園內的洪水風險。Environment Agency, Horizon House, Deanery Road, Bristol, BS1 5AH","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-005","cat":"C","sub":"C1","name":"回水創造","desc":"在倫敦-梅耶斯布魯克河修復計畫中藉由增加洪氾區蓄水量、回水創造及永續排水系統等 Nbs 相關策略使河川復育，藉此降低鄰近住宅區和公園內的洪水風險。Environment Agency, Horizon House, Deanery Road, Bristol, BS1 5AH","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-006","cat":"C","sub":"C1","name":"永續排水系統","desc":"在倫敦-梅耶斯布魯克河修復計畫中藉由增加洪氾區蓄水量、回水創造及永續排水系統等 Nbs 相關策略使河川復育，藉此降低鄰近住宅區和公園內的洪水風險。Environment Agency, Horizon House, Deanery Road, Bristol, BS1 5AH","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-007","cat":"C","sub":"C1","name":"河流和洪氾區恢復","desc":"將河道恢復到更自然的路線，以減緩水流，使河流重新連接到洪氾區 並增加上游洪水儲存量。包括拆除堤防或路堤等障礙物，建造池塘或濕地，為水提供指定的去處，並減少下游的洪水風險。https://thefloodhub.co.uk/nfm/","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-008","cat":"C","sub":"C1","name":"滲漏木質水壩","desc":"由天然材料如木質或巨石所製成的壩，可以有效控制水位，調節流量，並在大雨期間將水從溪流引導到洪氾區或蓄水區。這些結構透過增加雨水流向下游所需的時間來降低最大洪峰。它們還可以幫助收集碎片，以防止下游夾點處發生堵塞。https://thefloodhub.co.uk/nfm/","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-009","cat":"C","sub":"C1","name":"植樹","desc":"樹木可以透過廣泛的根系吸收雨水、提高土壤入滲率、穩定斜坡以防止侵蝕以及透過攔截降雨來調節水流，從而降低洪水風險。這些綜合效應有助於減緩水流、減少地表 徑流、補給地下水、減輕洪水的流量和速度，進而降低下游洪水的風險。https://thefloodhub.co.uk/nfm/","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-010","cat":"C","sub":"C1","name":"沼澤地恢復","desc":"健康的沼澤地助於減少大氣中二氧化碳的含量，同時也會減慢水流並提高地下水位。恢復後的沼澤地能夠容納更多的降雨，減緩水排入河流的速度，降低了下游洪水風險。恢復的沼澤地也促進植被生長，有助於防止土壤侵蝕並提高生態系統抵禦強降雨的能力。https://thefloodhub.co.uk/nfm/","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-011","cat":"C","sub":"C1","name":"Short Rotation Willow Coppice","desc":"透過這項技術可以增加滲透和蒸發，從而減少到達地面和進入水道的洪水量。同時柳樹是一種能源作物，可以為農民帶來收入。https://thefloodhub.co.uk/nfm/","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-012","cat":"C","sub":"C1","name":"建立蓄洪區","desc":"透過不同蓄洪方式(在槽、離槽式)來緩解下游的洪水。例如: 人工濕地、滯留池和水庫。https://thefloodhub.co.uk/nfm/","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-013","cat":"C","sub":"C1","name":"農業土地管理","desc":"主要目的是減少土壤壓實並改善土壤質量，使其能夠保留更多的水分並減少流入水道的徑流。https://thefloodhub.co.uk/nfm/","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-014","cat":"C","sub":"C1","name":"河岸草地和樹木緩衝區","desc":"作為滯洪空間、並提供生態系服務。\nhttps://doi.org/10.1016/j.scitotenv.2023.169329","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C1-015","cat":"C","sub":"C1","name":"智慧採石","desc":"ADB, 2022. Nature-Based Solutions for Flood Risk Management: Revitalizing Philippine Rivers to Boost Climate Resilience and Enhance Environmental Stability. ASIAN DEVELOPMENT BANK","tags":["NbS","干預","解方"],"updated":"2024-10-08"},{"id":"C2-001","cat":"C","sub":"C2","name":"Assessing the long-term effectiveness of Nature-Based Solutions under different climate change scenarios","desc":"建立社會經濟-生態壓力-水文系統動力模式評估不同氣候變遷情境下基於自然的解決方案的長期有效性。https://doi.org/10.1016/j.scitotenv.2021.148515","tags":["氣候","研究案例","Nexus"],"updated":"2024-10-08"},{"id":"C2-002","cat":"C","sub":"C2","name":"蘭陽溪水系治理規劃110年","desc":"請見「蘭陽溪水系治理規劃110年課題整理」一表","tags":["案例","流域"],"updated":"2024-10-08"},{"id":"C2-003","cat":"C","sub":"C2","name":"臺灣推動自然解方於河川溪流治理之障礙與機會","desc":"河川溪流的治理採取傳統工程手段，已無法因應氣候變遷的挑戰。自然解方（NBS: nature-based solutions）被用來應對各種環境、社會與經濟挑戰，比起傳統灰色基礎設施更能提供多樣效益。爲利自然解方於臺灣河川溪流治理主流化，首先需要深入了解自然解方目前在臺灣的落實情況。本研究以行政院農業委員會水土保持局（二〇二三年八月改組為「農村發展及水土保持署」）於二〇二二年執行《111年後龍溪導入NbS調適研究計畫》與《111年度集水區NbS調適策略研究計畫-花蓮縣大不岸溪規劃示範區》兩計畫為案例，透過參與式觀察與訪談計畫行動者，探討臺灣推動自然解方於河川溪流治理之機會與障礙。研究發現，目前水保局推動自然解方存在以下障礙：其一、設計廠商思維者受限於既有框架，其二、缺乏遊說地主之制度工具。其三、缺乏設計自然解方之專業知識。其四、缺乏足夠時間與地方溝通。以自然解方治理河溪之機會則為：森川里海平臺有助於民眾參與、轉譯專業知識有助於跨域合作。\n\n柯品華，2023，臺灣推動自然解方於河川溪流治理之障礙與機會，台北大學都市計劃研究所，碩士","tags":["案例","流域","台灣","論文"],"updated":"2024-10-08"},{"id":"C2-004","cat":"C","sub":"C2","name":"Nature-based solutions to address global societal challenges","desc":"本報告是 IUCN 努力的一部分，旨在確定其對基於自然解方 （NbS） 的立場，並規劃未來工作，以推進這一概念並支援有效實施 NbS，以加強生態系統服務的提供並應對社會挑戰。該報告提出了 NbS 的定義框架，包括任何 NbS 干預的一套一般原則。該報告還將 NbS 的範圍定義為一個總括概念，包括許多不同的基於生態系統的方法。這些 NbS 方法可以分為：（i） 生態系統恢復方法（例如生態恢復、生態工程和森林景觀恢復）;（ii） 發佈與生態系統相關的具體方法（例如，基於生態系統的適應、基於生態系統的減災和基於生態系統的減少災害風險）;（iii） 與基礎設施相關的方法（例如自然基礎設施和綠色基礎設施方法）;（iv） 基於生態系統的管理方法（例如沿海地區綜合管理和水資源綜合管理）;以及 （v） 生態系統保護方法（例如，包括保護區管理在內的基於區域的保護方法）。\nCohen-Shacham, E., Walters, G., Janzen, C., & Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland, 97, 2016-2036.","tags":["IUCN","NbS","自然解方方法"],"updated":"2024-10-08"},{"id":"C2-005","cat":"C","sub":"C2","name":"應用與自然同工思維建立河川復育指標研究","desc":"近年來世界各地頻傳人類難以預料的自然災害，包含了氣候變遷地震、颱風、豪雨等因素造成，迫使我們必須以不同的思維考慮防災問題，人類終不敵大自然的力量。本研究以自然同工思維來建立河川復育指標以現地探勘為基礎，藉由觀測及量化水筆仔適存性輔以文獻資料佐證，再以數值分析軟體模擬推估佐證環境流速及水深，其主要目的為瞭解水筆仔生長茂盛的地區與河川水理及河川型態結構之關係，以瞭解河川回淤之範圍。生態調查結果顯示水筆仔數量經過一整年週期性消長無明顯變化，水筆仔生長範圍雖縮小，但數量不變，生物密度及質量迅速上升。本研究之流速模擬發現下游沙洲地區，即使在颱風汛期影響下流速相當於靜止水域(小於0.4m/s)，非常適合水筆仔生存，至於上游兩側因颱風降雨引起的高流速不利於植物生長。綜合結果導入5S model進行水筆仔研究在此模場的生殖分析，其結果也相互呼應，並將水筆仔做為此區生態水利整體規劃指標物種以SWOT進行分析，其結果可供台灣河川水利規劃之策略參考，藉以發揮與自然同工概念。\n顧家榮，2015，應用與自然同工思維建立河川復育指標研究，嘉義大學土木與水資源工程學系研究所，碩士論文。","tags":["河川復育"],"updated":"2024-10-08"},{"id":"D1-001","cat":"D","sub":"D1","name":"生態調查研究資料庫","desc":"此系統考量完整資料生命週期且遵循國際生態資料標準，從資料蒐集、整合管理至流通應用建立系統化流程， 並以雲端服務概念設計，可提供跨單位、組織管理自有生態調查資料，透過該系統達到資料流通共享之目標。\nhttps://ecollect.forest.gov.tw/","tags":["生態","生物多樣性","資料庫"],"updated":"2024-10-08"},{"id":"D1-002","cat":"D","sub":"D1","name":"臺灣生物多樣性資訊機構","desc":"臺灣生物多樣性資訊機構 (Taiwan Biodiversity Information Facility, TaiBIF) 是全球生物多樣性資訊機構 (GBIF) 在臺灣的國家節點，也是臺灣生物多樣性資訊與國際平台接軌之窗口。在 GBIF.org 國際平台上，所有授權條件明確之公開生物多樣性資料，均提供全球科學研究、政策制定以及公共建設使用。\nhttps://gic.wra.gov.tw/gis/","tags":["生態","生物多樣性","資料庫"],"updated":"2024-10-08"},{"id":"D1-003","cat":"D","sub":"D1","name":"水利地理資訊服務平台","desc":"平台系統功能可分成「水環境」、「水運用」、「水源供需」、「雲端運算」、「知識庫」、「空間資訊」、「資料查詢」、「資料管理」、「系統管理」等功能類別。其中水環境、水運用、水源供需，可供未來對外提供具可靠性與參考性之台灣水資源整體輪廓的資訊；雲端運算、知識庫以提供內部水資源規劃作業所需協助與資訊為主要訴求；其他功能則以基礎資料之管理與供應為目標。","tags":["水文","資料庫","地理資訊系統"],"updated":"2024-10-08"},{"id":"D1-004","cat":"D","sub":"D1","name":"臺灣生物多樣性觀測網絡","desc":"TaiBON 小組共同的努力方向：\n1.收集並分析國外​不同層級的生物多樣性指標，分析其內涵、合宜性及建置程序，發展出適合我國生物多樣性指標\n3.建置臺灣保護 / 保留區生物多樣性指標架構，掌握目前的保育概況\n4.建立資料整合機制，完備生物多樣性監測系統\n5.完成紅皮書資訊網，展現臺灣物種目前的收威脅程度與保育等級\n6.完成管考系統，呈現政府施政成果並與國際接軌\nhttps://taibon.tw/zh-hant/indicator","tags":["生態","生物多樣性","資料庫","生物多樣性指標","生態系服務價值估算"],"updated":"2024-10-08"},{"id":"D1-005","cat":"D","sub":"D1","name":"國土測繪圖資e商城","desc":"內政部國土測繪中心（以下簡稱本中心）為發揮國土測繪圖資最大效益，以「國土測繪空間資料庫」為基礎，結合測繪圖資查詢申購等相關系統，建置完成「國土測繪圖 資e商城」，提供基本地形圖、國土利用現況調查成果圖、臺灣通用電子地圖、段籍圖、 地籍圖、控制點、典藏地籍圖掃描影像等測繪成果。考量各界對於各項測繪成果之需 求，網站除提供本中心同仁辦理各項測繪業務查詢運用外，亦開放一般民眾以非會員 方式檢索詮釋資料及部分圖資線上瀏覽，並可加入會員使用自然人憑證辦理圖資申 購，以達檢索、瀏覽、申購便捷快速服務之目標，進而充分發揮國土測繪資料整合流 通供應之效益。https://whgis-nlsc.moi.gov.tw/Default.aspx","tags":["土地利用","資料庫","地理資訊系統；地圖","圖資"],"updated":"2024-10-08"},{"id":"D1-006","cat":"D","sub":"D1","name":"IWRM Tools","desc":"「流域綜合管理工具箱」(IWRM Tools/Toolbox, https://iwrmactionhub.org/) 收集規劃、實施流域綜合管理(IWRM)過程中需要的工具；分為四大類：A政策框架、B相關者參與、C管理與評估、D財務。","tags":["工具箱","IWRM","流域綜合管理","流域綜合治理","資料庫"],"updated":"2024-10-08"},{"id":"D1-007","cat":"D","sub":"D1","name":"生態系統服務估值資料庫 （ESVD）","desc":"生態系統服務估值資料庫 （Ecosystem Services Valuation Database, ESVD） 的長期目標是提供有關生態系統和生物多樣性的經濟效益及其損失成本的可靠且易於獲取的資訊，以支援有關自然保護、生態系統恢復和可持續土地管理的決策。ESVD 的重點是收集有關與生態系統服務相關的經濟福利值的資訊，以貨幣單位衡量。通過以貨幣單位傳達這些值，我們提供了可識別的資訊，可用於內化自然在決策中的重要性。ESVD 目前包含來自 1100 多項研究的 10,874 條價值記錄，分佈在所有生物群落、生態系統服務和地理區域。我們的估值研究存儲庫包含 2000 多項研究，並且數量不斷增長，因此 ESVD 中的價值記錄數量將隨著時間的推移而增加。\nhttps://www.esvd.net/\nhttps://www.esvd.info/","tags":["生態系服務","生態系服務量化","指標","資料庫"],"updated":"2024-10-08"},{"id":"D1-008","cat":"D","sub":"D1","name":"ValuES","desc":"ValuES 提供生態系友善規劃所需工具--生態系服務量化與評估。ValuES在五個關鍵行動領域開展工作： （1） 現有經驗分析 考慮對生態系統服務的現有分析以及結果在決策和規劃過程中的應用。確定最佳實踐案例研究並吸取經驗教訓。（2） 方法和工具清單 制定方法和工具清單，以指導從業者和決策者選擇和應用適合其資訊需求的方法、工具和指標。（3） 向夥伴國提供諮詢服務 向從業人員和決策者提供針對具體國家的諮詢服務，以確定生態系統服務的價值並將其納入具體政策和專案。（4） 能力建設 設計並促進有關選擇和應用生態系統服務估值方法和工具的培訓。這些培訓旨在提高將生態系統服務分析結果納入決策過程的能力。（5） 網路支援和國際交流 支援相關國際網路和現有的南南和南北交流平臺。在國際論壇上開發和傳播與設計和使用估值方法和工具相關的經驗教訓和建議。\nhttp://www.aboutvalues.net/","tags":["生態系服務","生態系服務量化","指標","資料庫"],"updated":"2024-10-08"},{"id":"D1-009","cat":"D","sub":"D1","name":"Working with natural processes (WWNP) to reduce flood risk.","desc":"Working with natural processes to reduce flood risk. 一系列報告，介紹利用自然過程(WWNP)降低洪水風險的證據基礎。包含技術指南與案例。Working with natural processes 替代詞語包含：自然洪水管理(Natural Flood Management, NFM)、自然解方(NbS)、工程與自然共存/自然同工 (Engineering with Nature, EwN), 綠色/生物/軟性/生態工程 (Green/Bio/Eco/Soft Engineering),、自然滯水措施(Natural Water Retention Measures)、集水區最佳洪水管理 (Catchment Based Flood Management)。 \n\nhttps://www.gov.uk/flood-and-coastal-erosion-risk-management-research-reports/working-with-natural-processes-to-reduce-flood-risk#annexes","tags":["NbS 干預手段","NbS 指引"],"updated":"2024-10-08"},{"id":"D1-010","cat":"D","sub":"D1","name":"實用河川復育評估監測選項指南 (PRACTICAL RIVER RESTORATION APPRAISAL GUIDANCE FOR MONITORING OPTIONS, PRAGMO)","desc":"實用河川復育評估監測選項指南 (PRACTICAL RIVER RESTORATION APPRAISAL GUIDANCE FOR MONITORING OPTIONS, PRAGMO)。PRAGMO 由英國獨立非營利機構 the River Restoration Centre (RRC) 建立，旨在協助所有從業人員制定監測目標，作為河川復育計畫的一部分。RRC 是一個獨立、公正的非營利組織。對於任何河流恢復和相關洪氾區項目，重要的是要證明其對野生動物的成功以及它對河流自然過程的影響程度。這只能透過對專案的評估來完成，而且這也應該強調未來可能需要的任何調整。為了表明成功程度，監控需要成為專案過程中不可或缺的一部分，從啟動一直到專案簽核及以後。需要從一開始就確定可衡量的合理專案目標；收集和分析的數據可以共同增加知識庫。然後，這可以幫助確定哪些技術或技術套件對於不同的河流類型和項目願望最成功，並向政府和資助者展示河流恢復如何、何時何地可以對一系列環境、經濟和其他方面有益。系統目標。然而，由於財務限制以及缺乏幫助制定適當監測水準和方法的指導，專案監測常常不被視為高度優先的活動。因此，PRAGMO 文件旨在提供一套務實的指導方針，幫助從政府機構到社區行動團體的一系列人員確定必要的監測水平。該文件為讀者提供了一套程序，用於根據專案規模、複雜性、與措施相關的風險、河流類型和可用資金來確定適當的監測計劃。\n\n第 1 章 目的\n第 2 章 使用者指南\n第 3 章 導航\n第 4 章. 專案目標\n第 5 章. 了解您的流域\n第 6 章. 監測目標\n第 7 章. 適當的技術\n第 8 章. 監控時間尺度\n第 9 章. 監控成本\n第 10 章： 超越數據\n第 11 章 案例研究\n第 12 章 參考文獻\n\nhttps://wiki.therrc.co.uk/index.php/PRACTICAL_RIVER_RESTORATION_APPRAISAL_GUIDANCE_FOR_MONITORING_OPTIONS_(PRAGMO)","tags":["河川復育","監測","適應性管理"],"updated":"2024-10-08"},{"id":"D1-011","cat":"D","sub":"D1","name":"Modelling Matrix for NFM","desc":"「洪水風險矩陣」彙整 WWNP 措施與模型。\nWorking with natural processes using the evidence base- appendix 1 flood risk matrix (29 KB) EXCEL\n\nhttps://www.gov.uk/flood-and-coastal-erosion-risk-management-research-reports/working-with-natural-processes-to-reduce-flood-risk#annexes","tags":["NbS 干預手段"],"updated":"2024-10-08"},{"id":"B1-024","cat":"B","sub":"B1","name":"棲息地適宜度指標","desc":"HSI的中心觀念為以量化數值 來評定物種所需的棲息地的狀況與品質。 將 某物種對所偏好的環境變數量化為一適宜度 指標(suitability index, SI),而各量化數值的 範圍都由0(不適宜的棲息地)至1(適宜的 棲息地)。 偏好的環境變數與適宜度指標可以 依據物種文獻或是野外調查而得知。\nhttps://www.forest.gov.tw/MagazineFile.aspx?fno=4850","tags":["生態","棲地","評估","指標"],"updated":"2024-10-08"},{"id":"C2-006","cat":"C","sub":"C2","name":"生態工程設計圖說手冊暨案例彙編","desc":"生態工程(Ecological engineering)係指人類基於對生態系統的深切認知，為落實生物多樣性保育及永續發展，採取以生態為基礎、安全為導 向，減少對生態系統造成傷害的永續系統工程。近幾年，政府各相關單位有鑒於過多之人工構造物容易破壞台灣地 區原有的生態系統及環境，進而積極推動生態工程，增加柔性資材之使用，減少工程施作對環境之衝擊；進行坡地生態環境調查、生態資料庫建置以及研發適合台灣地區生態工程之參考圖冊、調查等，期望能讓國 內外與生態工程相關之理念與技術，真正落實到設計及施工人。","tags":["專書","生態工程"],"updated":"2024-10-10"},{"id":"C2-007","cat":"C","sub":"C2","name":"評估基於自然的解決方案的影響：從業人員手冊","desc":"本手冊旨在為決策者提供一個全面的自然基礎解決方案（NBS）影響評估框架，並提供一套穩健的指標和方法，以評估 NBS 在 12 個社會挑戰的影響：氣候韌性、水資源管理、自然和氣候災害、綠地管理、生物多樣性、空氣品質、場所重建、促進永續都市轉型的知識和社會能力建設、參與式規劃與治理、社會正義與社會凝聚力、健康與福祉、新經濟機會與綠色就業。這些指標由17個歐盟資助的NBS專案的代表和合作機構（如歐洲環境署（EEA）和歐洲聯合研究中心（JRC））共同開發，作為歐洲NBS影響評估工作小組的一部分，並具有以下四重目標：\n作為相關歐盟政策和活動的參考；\n引導都市從業者在不同尺度上制定穩健的NBS影響評估框架；\n在EKLIPSE框架的開創性工作基礎上，提供一套全面的指標和方法；\n建立有關NBS影響的歐洲證據基礎。\n這些指標反映了當前有關NBS影響的科學研究現狀，以及有效且標準化的評估方法，同時也反映了都市實施評估框架的現狀。\nEuropean Commission. (2021). Evaluating the impact of nature-based solutions: A handbook for practitioners. Luxembourg: Publications Office of the European Union.","tags":["專書","NbS 方法學"],"updated":"2024-10-11"},{"id":"C2-008","cat":"C","sub":"C2","name":"Fluvial flood adaptation using nature-based solutions: A comprehensive and effective assessment of hydro-meteorological risks","desc":"此研究建立全面評估自然解方在解決水文-氣象風險成效的方法學。摘要：\n自然解方（NbS）在減少災害風險（DRR）方面的日益突出引起了越來越多的興趣。這項研究的動機是需要建立一種可量化和標準化的方法來評估 NbS 在工程應用中減輕的風險。目標是建立一個全面有效的系統框架，用於評估工程應用中與NbS相關的水文氣象風險。所提出的架構考慮了洪水災害機制、不確定因素和生態系統服務，將它們整合起來以綜合評估NbS的效益。具體來說，開發並應用二維水力分析和基於內部自適應克里金法的可靠性分析來建立 NbS 防洪標準。此外，InVEST工具包用於評估生態系統服務。為了證明該框架的適用性，選擇位於台灣屏東縣的寶利河流域作為案例研究。研究發現，NbS可以有效抵禦25年一遇的洪水，減少農地洪水46.03%。此外，對於 20 年一遇的洪水，發生洪水的機率從 100% 降至 27%。研究發現，與工程治理策略相比，NbS 的總效益價值增加了約新台幣 1.20 至 465 萬元。\nLiao, Kuo-Wei, John Thedy, and Chun-Che Tai. \"Fluvial flood adaptation using nature-based solutions: A comprehensive and effective assessment of hydro-meteorological risks.\" Science of The Total Environment 912 (2024): 169329.","tags":["期刊論文","NbS 方法學","水文-氣象風險"],"updated":"2024-10-11"},{"id":"C2-009","cat":"C","sub":"C2","name":"San Jerónimo River 流域綜合管理","desc":"San Jerónimo River 流域是屬於Salamá次流域的一個小流域，後者屬於Salinas流域。Salinas河形成了烏蘇馬辛塔河，並流入墨西哥灣。San Jeronimo River的水資源過度開發和污染，以及農業開發和大規模森林砍伐，導致了邊境社區之間的衝突。這些衝突源於水質和水量的惡化。該市的問題與缺乏適當的污水和固體廢物處理有關，導致地下水和地表水源的污染。這種污染傳播到鄰近社區，甚至傳播到該市的人口，導致了腸胃和相關疾病的增加，主要影響五歲以下的兒童。河流流域的污染以及保護工作，都取決於該市居民，因為他們的行為加劇了水污染問題。為了解決這些問題，成立了流域委員會（包括農業灌溉、水產養殖、水力發電、人類飲用和旅遊業），擔任談判機構的角色，其使命是實施水資源綜合管理(Integrated Water Resources Management, IWRM)。該委員會積極涉及地方政府、San Jerónimo灌溉用戶協會（AURSA）和Defensores de la Naturaleza，這是負責管理Sierra de las Minas的非政府組織。Defensores de la Naturaleza、AURSA和San Jerónimo市都面臨著共同的問題，這迫使它們通過流域委員會進行協調，以便共同努力實現流域的永續管理。通過建立流域委員會，產生了以下行動和指南：\n(1) \t對子流域的問題和需求進行主要診斷，作為起點；\n(2) \t加強委員會的能力；\n(3) \t保護和管理水資源；\n(4) \t保護和管理森林資源以及農務。 \n獲得的重要好處包括：\n(1) \t改善協調，以保護和維護San Jerónimo流域，以及類似的流域。\n(2) \t參與培訓、經驗和與GWP Guatemala的交流活動。\n(3) \t聯合的宣傳活動、資訊傳達和環境教育，旨在減少由廢水和固體廢物導致的地下水和地表水污染。\n(4) \t流域委員會成員的貢獻，如AURSA。通過委員會成員對水資源基金（由Defensores de la Naturaleza管理）的貢獻，認為可以實現Sierra de las Minas高處的重新植林。\nPerez Oliva, R. (2013). Guatemala: Successful IWRM Experiences in San Jeronimo Basin. Water and Sanitation Network of Guatemala - RASGUA. Retrieved May 6, 2024, from https://iwrmactionhub.org/case-study/guatemala-successful-iwrm-experiences-san-jeronimo-basin","tags":["流域綜合管理","案例"],"updated":"2024-10-11"},{"id":"C2-010","cat":"C","sub":"C2","name":"Quantitative calculation and optimized applications of ecological flow based on nature-based solutions","desc":"此研究在考慮研究地區的河岸濕地植被發展、代表性魚種以及代表性魚種適宜棲地條件下定量計算生態基流量。該研究亮點：\n•NbS用於定量計算和評估生態流量。\n•自然流量運算可以實現流域生態的健康發展。\n•生態流可用於中小型季節性缺水河川。\nFu, et al. \"Quantitative calculation and optimized applications of ecological flow based on nature-based solutions.\" Journal of Hydrology 598 (2021): 126216","tags":["期刊論文","NbS 方法學","生態流量","生態基流量"],"updated":"2024-10-11"},{"id":"C1-016","cat":"C","sub":"C1","name":"HYDROUSA","desc":"HYDROUSA（www.hydrousa.org）是EU Horizon2020 Innovation Action的一個專案計畫，旨在通過展示創新的水/污水處理和管理解決方案，徹底改變地中海地區的供水鏈，這將閉合水循環，同時還將提升其農業和能源概況。與NbS應用相關的是，HYDROUSA結合傳統工藝、技術，以及現代NBS，ICT (Information and Communications Technology)連接和自動化系統，展示了循環NbS技術在污水處理和營養物回收方面的有效性，同時創造了進一步的環境和社會效益(圖3.1)。該計畫為地中海地區夏季高旅遊旺季罕見的水資源問題提供了解決方案。該計畫不僅將開發和展示創新的水服務，還將徹底改革地中海地區從取水和使用到污水處理和再利用的水價值鏈。HYDROUSA計畫中有五個水類別：雨水、地下水、污水、水蒸氣和海水，這些類別之間定義的系統包括收集、補充和恢復(recharge and restore)、濕地、水蒸氣凝結和熱帶溫室。此外，生物模仿設計概念和灌溉肥培技術正在應用於提高所選NbS的效率。這些系統的部分回收產品包括家用水、灌溉水、沼氣、飲用水和鹽。（圖4）。為了展示HYDROUSA解決方案可轉移性，解決方案將會實施在地中海其他水資源短缺地區得到展示，包括意大利、西班牙、塞浦路斯、法國、埃及、克羅地亞、以色列、土耳其、巴勒斯坦、黎巴嫩、摩洛哥和突尼斯的25個早期采用案例的地中海沿岸地區和島嶼，以及至少6個來自保加利亞、中國、阿聯酋、澳大利亞、墨西哥、智利、馬來西亞、阿根廷的水資源短缺的農村或近郊地區，這些地區已經簽署了支持信函。","tags":["汙水處理","水質","循環經濟","NbS"],"updated":"2024-11-08"},{"id":"B2-008","cat":"B","sub":"B2","name":"ARIES","desc":"ARIES（Artificial Intelligence for Ecosystem Services，人工智能生態系統服務，https://aries.integratedmodelling.org/） 是一個用於快速評估和評估生態系統服務的網絡協作軟件技術。 它的目標是提供一套支持科學為基礎的決策的模型。ARIES 強調生態系統服務的供應、需求和流動，以便量化社會實際提供的服務和使用（而不是量化潛在的服務收益）。\n● ARIES 由 Ikerbasque Research 和 BC3 建立。[1]\n● 網址： https://aries.integratedmodelling.org/。\n● 使用 ARIES 需要中等程度的專業知識。[1]\n● ARIES 可以量化多種生態系統服務，例如碳儲存、授粉、防洪調節、戶外休閒、沉積物保持、生物量供應、非木材森林生態系統服務價值、供水、消防、草原和牲畜等功能。[2]\n● ARIES 的模型是基於許多研究案例構建的。[3]\n● ARIES 使用全球範圍的粗解析度空間資料庫，模擬全球範圍內生態系統服務功能的供應、使用和空間動態。[3]\n● ARIES 有著容易使用的界面，當新用戶使用 ARIES 並貢獻和共享他們自己的資料與模型時，可以提高評估精度並引入更多建模者，有助於擴大用戶群和資料庫。[3]\n\n[1] https://www.interlace-project.eu/sites/default/files/2022-06/ARIES.pdf\n[2] Martínez-López, Javier, et al. Science of the Total Environment 650 (2019): 2325-2336.　https://doi.org/10.1016/j.scitotenv.2018.09.371\n[3] 黃心潔，台大環工所，碩士論文（2020） http://tdr.lib.ntu.edu.tw/jspui/handle/123456789/7116","tags":["決策支援工具","生態系服務","生態系影響"],"updated":"2024-11-08"},{"id":"B2-009","cat":"B","sub":"B2","name":"MIMES","desc":"MIMES (Multiscale Integrated Model of Ecosystem Services，生態系服務多尺度綜合模型) 是一種基於生態系統的管理工具──方法架構；MIMES 將地理參考資料集與人類和自然系統的多種資訊來源整合起來，以創建系統模型；這些系統模型評估不同未來情境下不同空間層面的生態系服務價值 [1, 2, 3]。 MIMES 多是針對特定情況的客製化模型[3]，無通用的現成工具，目前 Boumans 團隊網頁(http://www.afordablefutures.com/)失效。\n\n[1] Boninabox, access: 2024-11-6. url: https://boninabox.geobon.org/tool-detail?id=100\n[2] Boumans, et al. Ecosystem services 12 (2015): 30-41. https://doi.org/10.1016/j.ecoser.2015.01.004\n[3] IPBES (Intergovernmental Science-Policy Platform on Biodiversity and Ecosystem Services), access: 2024-11-6. url: https://www.ipbes.net/policy-support/tools-instruments/multi-scale-integrated-models-ecosystem-services-mimes","tags":["架構","政策支援工具","生態系服務","生態系影響","生態系為基礎的管理評估"],"updated":"2024-11-08"},{"id":"B2-010","cat":"B","sub":"B2","name":"ES Trade-off","desc":"ES Trade-off  (Ecosystem Service Trade-off management framework) 是一個基於關鍵生態系統服務 (KESs) 的生態系統服務權衡管理框架，旨在有效管理生態系統服務之間的權衡，以實現社會生態系統管理的目標。ES Trade-off 框架結合了利益相關者偏好衝突和生物物理限制，力求在提高生態系統服務供應效率的同時，兼顧不同利益相關者需求的公平性。該框架通過識別關鍵生態系統服務、平衡驅動力調節和構建補償方案，以期在不損害任何利益相關者利益的前提下，實現生態系統服務供應的優化。 ES Trade-off 框架的提出是為了解決現有生態系統服務權衡管理方法在效率和公平性方面的不足，例如忽略利益相關者差異化偏好或未根據生態系統服務權衡的客觀規律設計管理方案等問題。然而，ES Trade-off框架仍有其局限性，例如忽略了「效率」和「公平」之間的權衡，以及難以管理多時空尺度的生態系統服務權衡等問題，需要在未來的研究中進一步完善。\n\nSu, B., & Liu, M. (2023). Ecological Indicators, 154, 110894.","tags":["架構","決策支援工具","生態系服務","生態系影響"],"updated":"2024-11-20"},{"id":"B2-011","cat":"B","sub":"B2","name":"BON in a Box","desc":"「BON in a Box」是全球生物多樣性觀察系統 GEO BON (The Group on Earth Observations Biodiversity Observation Network)提供的工具，協助使用者計算生物多樣性指標，並設計、收集、管理、分析和報告生物多樣性數據。「BON in a Box」 提供多種工具，例如「管道引擎」和各種生物多樣性指標，如：紅皮書指標、保護連通性指標、物種棲息地指標 和 物種分佈模型 等。透過這些工具，可以監測和分析生物多樣性變化，提供決策者和科學界參考資訊。平台也提供「項目」和「工具」等資訊，讓使用者可以註冊自己的監測項目，並尋找附近的相關項目。平台的目標是透過改善生物多樣性觀察的獲取、協調和傳遞，以服務使用者，包括決策者和學界。\n\n平台以四個核心功能來運作，網路化、計算、優化監測和報告：\n1. 平台提供一個資料庫，方便使用者搜尋全球生物多樣性監測計畫，以建立合作關係。\n2. 平台提供模組化工作流程，讓使用者能將不同來源的數據整合起來，並計算關鍵生物多樣性指標。\n3. 平台可以識別資料不足的關鍵地區，以便使用者能更有效地設計監測計畫。\n4. 平台提供工作流程，讓使用者能生成生物多樣性指標報告，以監測生物多樣性狀況的變化趨勢。\n\nhttps://boninabox.geobon.org/about","tags":["決策支援工具","生態系服務","生態系影響","生物多樣性監測工具箱"],"updated":"2024-11-08"},{"id":"B2-012","cat":"B","sub":"B2","name":"CA-Markov 模型","desc":"CA-Markov 模型：CA-Markov 模型結合了元胞自動機 (Cellular Automata) 和馬可夫鏈 (Markov Chain) 的方法，用於模擬和預測土地利用/土地覆蓋變化。\n\nDeeksha, & Shukla, A. K. (2022). Ecosystem services: a systematic literature review and future dimension in freshwater ecosystems. Applied Sciences, 12(17), 8518. https://doi.org/10.3390/app12178518","tags":["決策支援工具","生態系服務","生態系影響","土地利用變遷模擬"],"updated":"2024-11-08"},{"id":"B2-013","cat":"B","sub":"B2","name":"LUSD-urban","desc":"LUSD-urban (Land Use Scenario Dynamics-urban) 是一個用於城市擴張的多尺度模擬模式，結合了細胞自動機 (Cellular Automata) 和系統動力學模式 (system dynamics modeling)，可以模擬微觀尺度的演化因素和宏觀尺度的資源約束。土地變遷模擬結果可以為生態系統服務評估提供重要的空間資訊。\n\n北京師範大學 (https://espre.bnu.edu.cn/sysxw/xwkx/99828.html)：\nLUSD模型是由何春陽等（2005年）是基於Pycharm平台和Python語言開發的界面化軟件（Beta版），實現了城市擴展過程模擬和城市增長邊界劃定功能。該軟件具有操作簡便、模擬精度高、適用性廣等特點，可可靠應用於不同社會經濟發展情景和不同尺度下的未來城市擴展過程模擬及城市增長邊界劃定，是量化未來城市擴展特徵、評估未來城市擴展的社會經濟和生態環境效應，以及進行國土空間規劃的有效工具。\n\nLUSD模型簡介下載鏈接：https://pan.bnu.edu.cn/l/fJ6wqp\nLUSD模型（Beta版）下載鏈接：https://pan.bnu.edu.cn/l/G575ZQ\nLUSD模型（Beta版）用戶手冊下載鏈接：https://pan.bnu.edu.cn/l/AJTFXu\n\n使用模型時請引用以下文獻：\n● 何春陽，史培軍，陳晉，李曉兵，潘耀忠，李京，李月臣，李景剛. 2005. 基於系統動力學模型和元胞自動機模型的土地利用情景模擬研究，中國科學，(D輯)，35(5)，464-473.\n● 英文版：Chunyang He, Peijun Shi, Jin Chen, Xiaobing Li, Yaozhong Pan, Jing Li, Yuechen Li & Jinggang Li. 2005. Developing land use scenario dynamics model by the integration of system dynamics model and cellular automata model. Science in China. Series D, 48(11), 1979-1989.\n● Chunyang He, Norio Okada, Qiaofeng Zhang, Peijun Shi, Jingshui Zhang. 2006. Modeling urban expansion scenarios by coupling cellular automata model and system dynamic model in Beijing, China. Applied Geography, 26, 323-345.","tags":["土地利用變遷模擬","城市擴張模型"],"updated":"2024-11-08"},{"id":"B2-014","cat":"B","sub":"B2","name":"SLEUTH","desc":"SLEUTH 模式（Slope, Land use, Exclusion, Urban extent, Transportation, and Hill shade）是一個基於細胞自動機（Cellular Automata, CA）的模擬和預測城市擴張模式，由加州大學聖塔芭芭拉分校的 Keith Clarke 開發。該模式用於模擬和預測城市擴張，其輸入資料包括：\n● 坡度 (Slope)：地形坡度數據，用於模擬地形對城市擴張的影響。\n● 土地利用 (Land use)：歷史土地利用數據，用於訓練模型並模擬土地利用變化。\n● 排除區域 (Exclusion)：不允許城市發展的區域，例如水體、保護區等。\n● 城市範圍 (Urban extent)：不同年份的城市範圍數據，用於校準模型並驗證模擬結果。\n● 交通網絡 (Transportation)：交通網絡數據，用於模擬交通對城市擴張的影響。\n● 山體陰影 (Hillshade)：山體陰影數據，用於模擬光照對城市擴張的影響。\n\n土地變遷模擬結果可以為生態系統服務評估提供重要的空間資訊。\n\n● SLEUTH 模型的開發者是 Keith Clarke 教授，他是美國加州大學聖塔芭芭拉分校地理系的教授。\n● SLEUTH 模型的軟體可以從以下網址免費下載：http://www.ncgia.ucsb.edu/projects/gig/short_courses/usa06/","tags":["土地利用變遷模擬","城市擴張模型"],"updated":"2024-11-08"},{"id":"B1-025","cat":"B","sub":"B1","name":"SEEA (環境經濟會計系統)","desc":"System of Environmental-Economic Accounting (SEEA, https://seea.un.org/ecosystem-accounting [1]) 。聯合國於2021年制定了SEEA（環境經濟會計系統）生態系統服務分類。此分類分為三個主要類別：提供資源的服務、調節和維護生態系統的服務以及具有文化價值的服務 [2]。 SEEA 環境評估已廣泛應用於支援全球永續發展議程的政策和決策流程。SEEA 環境評估框架可以回答有關經濟、社會和環境之間的關係以及我們如何衡量福祉和社會進步的重要總體問題。[1]\nSEEA (Economic Accounting, EA) 建立在五個核心帳戶：生態系範圍、 生態系狀況、生態系服務物質流、生態系服務貨幣、貨幣生態系資產帳戶；並可用於不同環境主題的核算。[1]\n\n[1] https://seea.un.org/ecosystem-accounting\n[2] https://www.esvd.info/classifications","tags":["生態系服務","生態系服務價值","環境經濟會計系統"],"updated":"2024-11-08"},{"id":"B1-026","cat":"B","sub":"B1","name":"TEEB 生態系服務分類","desc":"The Economics of Ecosystems and Biodiversity (TEEB，生態系統和生物多樣性經濟學) 引入了一個由 22 個生態系統服務組成的分類系統，分為四大類，與 MA（千年生態系統評估）分類密切相關。這些類別包括供給服務、調節服務、棲息地服務以及文化和便利服務。\n\nhttps://www.esvd.info/classifications\nhttps://www.esvd.info/_files/ugd/53b4f9_1e5e0ba457744f3ea3e8f3d1bab78e88.pdf","tags":["生態系服務","生態系服務分類"],"updated":"2024-11-08"},{"id":"C2-011","cat":"C","sub":"C2","name":"利用正規化水分指數 (NDWI) 評估中國大型洪氾區濕地越冬雁的棲地適宜性","desc":"摘要：「水文條件是影響大型淡水洪氾區水鳥豐度和分佈的最重要因素之一，因為它影響它們的棲息地和食物供應。水文狀況通常以基於現場的水文資料（例如水位）來表示。基於站點的數據具有較高的時間解析度，但在表示空間特徵方面效果較差，而空間特徵是生態/棲息地模型的要求。在這項研究中，我們提出了一種根據 Sentinel-2 衛星影像得出的正規化水分指數 (NDWI) 來確定越冬鵝的合適棲息地的方法。分析了NDWI、水位與鵝發生率之間的關係。結果表明，鄱陽湖NDWI可以解釋越冬期間（除2019年2月外）75%的水位變化和至少42%的大雁出現。適合越冬鵝的每月NDWI最佳範圍被確定為-0.12至0，適當的NDWI閾值範圍為-0.27至0.14。根據這個閾值範圍，我們確定了鵝的適宜棲息地，發現適宜棲息地面積在整個越冬期間先增加後減少，呈現倒U型動態。我們得出的結論是，NDWI 可用於改進水鳥物種的分佈模型，以支持其保護和濕地管理。」\n\nTeng, Jiakun, et al. \"Assessing habitat suitability for wintering geese by using Normalized Difference Water Index (NDWI) in a large floodplain wetland, China.\" Ecological Indicators 122 (2021): 107260. https://doi.org/10.1016/j.ecolind.2020.107260","tags":["期刊論文","棲地評估","鳥類","物種分佈模型"],"updated":"2024-11-10"},{"id":"C1-017","cat":"C","sub":"C1","name":"魚類河川棲地適合度調查技術","desc":"本文簡介： 河川魚類棲地適合度、* 河川魚類棲地適合度調查原則、 調查技術。\n\n葉明峰，農政與農情，94年5月（第155期），行政院農業部。https://www.moa.gov.tw/ws.php?id=8541","tags":["科普文章","生態調查","魚類"],"updated":"2024-11-10"},{"id":"D1-012","cat":"D","sub":"D1","name":"河川原生魚種及棲地適合度曲線調查與資料庫建置","desc":"本報告書為了河川治理逐漸轉向生態保育與永續管理。建立臺灣水中重要目標物種之棲地適合度曲線（HSC），尤其是水深、流速等因素對水生生物的影響。使從業人員可以透過水理模式評出河道工程對水中動物影響，助於了解並減輕工程對河川生態的影響。\n\n表2-1為整魚類棲地適合度彙整；表2-2為淡水魚類生活史；\n\n行政院農業委員會特有生物研究保育中心，《河川原生魚種及棲地適合度曲線調查與資料庫建置》，經濟部水利署水利規劃分署","tags":["報告書","生態調查","魚類","蝦類","河中動物","棲地適合度","適合度曲線","生活史","資料庫","棲地","卑南溪","後龍溪","大安溪","曾文溪"],"updated":"2024-11-10"},{"id":"C2-012","cat":"C","sub":"C2","name":"順應河相之治理措施規劃","desc":"本文內容主要為《水利署水利規劃試驗所，2019，河相學應用於河川治理規劃參考手冊》重點摘錄。提供順應河相之堤防、丁壩、護岸、橫向構造物、疏濬建議與決策流程。\n\n摘要「河道內治理措施需考量河川能量狀況，及河道內的自然消能機制，方能達到事半功倍之效，兼顧河防安全與環境生態、文化景觀等多重價值。本文從河相學觀點出發，依據台灣河川類群及地形分段概念，說明堤防、丁壩、護岸、橫向構造物、疏濬等各項治理措施的區位原則、常見工程課題、順應河相之規劃原則，並為此五種治理措施提出決策流程，供 規劃者 參考。河道內工程改善有其極限，若河川空間已嚴重不足，需探討非工程方案，故各項工程措施的決策流程中，亦納入治理規劃所涉 及的數種非工程方案。」\n\n楊佳寧，順應河相之治理措施規劃，水利會訊，中華民國109年12月--會訊第二十四期。\n水利會訊：http://www.hydraulic.org.tw/news2.asp?r=c","tags":["文章","河相","水利工程"],"updated":"2024-11-10"},{"id":"D1-013","cat":"D","sub":"D1","name":"Engineering With Nature, EWN 工具","desc":"「Engineering With Nature」是美國陸軍工程兵團 (USACE) 的一項倡議。網頁上提供 Engineering With Nature, EWN 工具。這些工具經過專門設計，旨在增強 EWN 研究的各個方面，並有助於幫助實現專案目標。類型包含網頁、網頁型應用程式、模式：\n\n流域建模系統（WMS）\n網格化地表地下水文分析 (GSSHA) 模型\n大壩拆除成本估算器\nC-STORM EWN 工具套件\n自然工程項目製圖器 (ProMap)\n粒子追蹤模型 (PTM)\n沉積物分析和地理應用 (SAGA)\n疏浚材料的有益利用 (BUDM)\n疏浚作業技術支援 (DOTS) 應用程式\n美國陸軍工程兵團導航門戶\nThin Layer Placement (TLP)\n自然基礎建設機會工具\n\n\nhttps://ewn.erdc.dren.mil/tools/","tags":["工具箱","防洪","疏濬"],"updated":"2024-11-22"},{"id":"B1-027","cat":"B","sub":"B1","name":"市場分析","desc":"市場分析（Market Analysis）：根據市場中對生態系服務的需求和供應來估算其價值。例如，基於生態旅遊、漁業、林業等產業的經濟價值來評估生態系統的貢獻。\n\nKing and Markowitz 2000。Ecosystem valuation。https://www.ecosystemvaluation.org/","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-028","cat":"B","sub":"B1","name":"成本法","desc":"成本法（Cost Methods）：通過計算替代生態服務的成本來估算其價值。例如，如果某一生態服務（如水質淨化）丟失，則計算用人造方式恢復該服務所需的成本。或者說由於ES的存在而避免的成本；基於成本的方法有幾種變體：重置成本法(replacement cost)、替代成本法(substitute method)、避免損害成本法(避免成本法)和減緩成本法(削減成本法)。\n\nSelivanov, E., & Hlaváčková, P. (2021). Methods for monetary valuation of ecosystem services: A scoping review. Journal of Forest Science, 67(11), 499-511. doi: 10.17221/96/2021-JFS","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-029","cat":"B","sub":"B1","name":"生產函數","desc":"生產函數（Production Function ）：通過建立生態服務與經濟生產活動（如農業、漁業等）之間的數學關係，估算生態服務對生產過程的貢獻。例如，像水質淨化這樣的ES的價值，可以根據市場上銷售更高品質水所帶來的收入增長來估算。\nSelivanov, E., & Hlaváčková, P. (2021). Methods for monetary valuation of ecosystem services: A scoping review. Journal of Forest Science, 67(11), 499-511. doi: 10.17221/96/2021-JFS","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-030","cat":"B","sub":"B1","name":"享樂定價","desc":"享樂定價（Hedonic Pricing）：基於市場中某些財產（如不動產）的價格變化，推測生態系統服務（如景觀質量、空氣清新）對這些財產的價值影響。這一方法假設ES的價值至少可以部分地反映在房地產的價格中。其主要觀點是，房地產位置與其價格之間存在直接關係。房屋越靠近ES，其價格越高。例如，一個位於湖泊附近的房屋和一個位於同一區域但距離湖泊較遠的房屋價格差異可以被解釋為湖泊所提供的ES的價值。\nSelivanov, E., & Hlaváčková, P. (2021). Methods for monetary valuation of ecosystem services: A scoping review. Journal of Forest Science, 67(11), 499-511. doi: 10.17221/96/2021-JFS","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-031","cat":"B","sub":"B1","name":"條件估計","desc":"條件估價法（Contingent Valuation, CV）是一種非市場估價方法，通過假設的情境來估算環境資源或生態系服務的價值。它通常使用問卷調查，詢問受訪者願意支付的金額（WTP）或願意接受的補償（WTA），以測量環境變化的價值。此方法可以用於估算無法在市場上直接交易的服務，如生物多樣性保護或清潔水源。它的優點是能夠量化環境資源的價值，為政策決策提供數據支持。儘管如此，條件估價法也存在一定的偏差風險，因為結果依賴於受訪者的假設回答。\nSelivanov, E., & Hlaváčková, P. (2021). Methods for monetary valuation of ecosystem services: A scoping review. Journal of Forest Science, 67(11), 499-511. doi: 10.17221/96/2021-JFS\nBrander, L.M., van Beukering P., Balzan, M., Broekx, S., Liekens, I., Marta-Pedroso, C., Szkop, Z., Vause, J., Maes, J., Santos-Martin F. and Potschin-Young M. (2018). Report on economic mapping and assessment methods for ecosystem services. Deliverable D3.2 EU Horizon 2020 ESMERALDA Project, Grant agreement No. 642007","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-032","cat":"B","sub":"B1","name":"重置成本","desc":"重置成本法（Replacement Cost Methods）：估算當某些生態服務喪失時，所需的人工替代服務的成本。例如，如果因為建設工程需要砍伐森林，那麼森林的價值至少等於建立一片新森林的成本，也就是通過種植新樹木來建立新的森林。\n\nSelivanov, E., & Hlaváčková, P. (2021). Methods for monetary valuation of ecosystem services: A scoping review. Journal of Forest Science, 67(11), 499-511. doi: 10.17221/96/2021-JFS","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-033","cat":"B","sub":"B1","name":"削減成本法","desc":"削減成本法（Mitigation Cost Methods）：通常用來估算某些生態服務(Ecosystem services, ES)或環境資源喪失所需要的費用，或者是當環境或生態問題出現時，為了減少這些負面影響所需的成本。例如，淨化受污染的水庫中的水，以提供飲用水。此方法與避免損害成本法的主要區別在於，後者中的損害是假設性的。\nSelivanov, E., & Hlaváčková, P. (2021). Methods for monetary valuation of ecosystem services: A scoping review. Journal of Forest Science, 67(11), 499-511. doi: 10.17221/96/2021-JFS","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-034","cat":"B","sub":"B1","name":"避免成本法","desc":"避免成本法（Avoided Cost）：基於避免某些環境損害的成本來估算生態服務的價值。例如，防止水污染的成本。一個經典的例子是紅樹林，它可以防止由風暴水造成的損害。\nSelivanov, E., & Hlaváčková, P. (2021). Methods for monetary valuation of ecosystem services: A scoping review. Journal of Forest Science, 67(11), 499-511. doi: 10.17221/96/2021-JFS","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-035","cat":"B","sub":"B1","name":"條件選擇法","desc":"條件選擇法（Contingent Election）：設計多個選擇場景，要求受訪者陳述在給定個人價格或成本的一組環境服務或特徵與在不同價格或成本的另一組環境特徵之間的偏好，從而推斷出各種生態服務的相對價值。\n\n謝敬華、林信維、柳婉郁（2020）。臺灣水稻田生物多樣性之經濟價值評估。農業經濟叢刊，26(1)，57-104。https://doi.org/10.6196/TAER.202006_26(1).0003","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-036","cat":"B","sub":"B1","name":"群體估價","desc":"群體估價  Group valuation（商議/審議式估價，deliberative valuation）方法 根據在群體討論過程中獲得的陳述偏好來評估ES，這與在條件估價（CV）和選擇建模（CM）方法中收集的個人偏好的匯總不同。群體估價方法的主要理念是將少數利益相關者聚集在一起，討論並辯論一組公共財的相對重要性。這種方法允許參與者基於他們在討論過程中識別的權衡取捨來評估ES，並根據他們的知識和理解做出評價。\n\nSelivanov, E., & Hlaváčková, P. (2021). Methods for monetary valuation of ecosystem services: A scoping review. Journal of Forest Science, 67(11), 499-511. doi: 10.17221/96/2021-JFS","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-037","cat":"B","sub":"B1","name":"商議式估價","desc":"商議/審議式估價（Deliberative Valuation）：同群體估價。根據在群體討論過程中獲得的陳述偏好來評估ES，這與在條件估價（CV）和選擇建模（CM）方法中收集的個人偏好的匯總不同。群體估價方法的主要理念是將少數利益相關者聚集在一起，討論並辯論一組公共財的相對重要性。這種方法允許參與者基於他們在討論過程中識別的權衡取捨來評估ES，並根據他們的知識和理解做出評價。\n\n王培蓉、林俊成。買賣自然—淺論為生態系服務付費。林業研究專訊 Vol.17 No.1 2010\nSelivanov, E., & Hlaváčková, P. (2021). Methods for monetary valuation of ecosystem services: A scoping review. Journal of Forest Science, 67(11), 499-511. doi: 10.17221/96/2021-JFS","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-038","cat":"B","sub":"B1","name":"聯合分析","desc":"聯合分析（Joint Analysis）是一種綜合方法，用於評估多個因素或變量之間的相互作用及其對系統的影響。在生態系統服務分析中，聯合分析可以幫助我們理解不同生態系統服務之間的相互關係，以及它們如何共同影響生態系統的健康和功能。例如，聯合分析可以用來評估森林砍伐對碳封存、水質淨化和生物多樣性的綜合影響。\nCenskowsky, P., & Otto, I. M. (2021). Understanding regime shifts in social-ecological systems using data on direct ecosystem service use. Frontiers in Environmental Science, 9. https://doi.org/10.3389/fenvs.2021.695348\n\nMDPI. (2023). Ecosystem services assessment for their integration in the analysis of landslide risk. Applied Sciences, 12(23), 12173. https://www.mdpi.com/2076-3417/12/23/12173\n\nSpringer. (2024). Ecosystem vulnerability assessment based on ecosystem services and analysis of its drivers. Environment, Development and Sustainability. https://link.springer.com/article/10.1007/s10668-024-05658-3","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-039","cat":"B","sub":"B1","name":"結構性改變分析","desc":"結構性改變分析（Regime shift analysis）或稱生態系統轉型分析。社會生態系統結構和功能發生的巨大、持續的變化，對這些系統提供的生態系統服務套件產生實質性影響。更好地了解政權更迭非常重要，因為它們可能對人類經濟、社會和福祉產生重大影響，而且往往難以預測且逆轉成本高昂 [1]。了解這些轉變對於制定管理和減輕其對生態系統服務和人類福祉影響的策略至關重要。\n\n[1] Regime Shifts DataBase. https://www.regimeshifts.org/what-is-a-regime-shift\n[2] CENSKOWSKY, P. & OTTO, I. M. 2021. Understanding Regime Shifts in Social-Ecological Systems Using Data on Direct Ecosystem Service Use. Frontiers in Environmental Science, 9.","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-040","cat":"B","sub":"B1","name":"適應週期","desc":"適應循環（Adaptive Cycle）：是一個用於理解複雜系統動態的概念模型，包括生態系統及其提供的服務。它描述了系統經歷的四個階段：成長 (r)、保守 (K)、崩潰或釋放 (Ω) 和重組 (α)。在生態系統服務的背景下，適應性循環可以用來分析這些服務如何在不同階段中變化和適應。例如，在成長階段，生態系統可能會看到生物多樣性和資源積累的增加，從而增強碳封存和水質淨化等生態系統服務。了解這些動態對於制定管理和減輕其對生態系統服務影響的策略至關重要。\nCENSKOWSKY, P. & OTTO, I. M. 2021. Understanding Regime Shifts in Social-Ecological Systems Using Data on Direct Ecosystem Service Use. Frontiers in Environmental Science, 9.","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-041","cat":"B","sub":"B1","name":"適應循環","desc":"風險分析（Risk Analysis）：生態系統服務分析中的風險分析涉及評估各種自然和人為壓力對生態系統及其提供的服務的潛在不利影響。這個過程有助於識別、評估和管理風險，以確保生態系統的可持續性和韌性。主要步驟包括識別風險、評估風險、管理風險以及持續監測和審查。這些步驟有助於制定策略來減輕或適應風險，確保生態系統服務的持續提供。\nCenskowsky, P., & Otto, I. M. (2021). Understanding regime shifts in social-ecological systems using data on direct ecosystem service use. Frontiers in Environmental Science, 9. https://doi.org/10.3389/fenvs.2021.695348\n\nMDPI. (2023). Ecosystem services assessment for their integration in the analysis of landslide risk. Applied Sciences, 12(23), 12173. https://www.mdpi.com/2076-3417/12/23/12173\n\nSpringer. (2024). Ecosystem vulnerability assessment based on ecosystem services and analysis of its drivers. Environment, Development and Sustainability. https://link.springer.com/article/10.1007/s10668-024-05658-3","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-042","cat":"B","sub":"B1","name":"蘊含能量","desc":"蘊含能源(Embodied energy)是生產任何商品或服務所需的所有能源的總和，視為該能源已包含或「體現」在產品本身。該概念可用於確定能源生產或節能設備的有效性，或建築物的「實際」重置成本，並且由於能源輸入通常會導致溫室氣體排放，因此可用於確定產品是否有助於或減輕溫室氣體排放(Dixit et al., 2010)。\n\nDIXIT, M. K., FERNñNDEZ-SOLýS, J. L., LAVY, S. & CULP, C. H. 2010. Identification of parameters for embodied energy measurement: A literature review. Energy and Buildings, 42, 1238-1247.","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-043","cat":"B","sub":"B1","name":"可用能分析","desc":"可用能分析（Exergy Anlysis）：可用能/㶲(Exergy)表示的是在環境條件下，能量中可轉化為有用功的最高份額，或表示為在熱力系只與環境相互作用，從任意狀態可逆地變化到與環境相平衡的狀態時所作出的最大有用功。\n\n生態㶲分析法（ecologicalexergy analysis）源自描述生命系統特徵之熱力㶲分析法（thermodynamics exergy analysis），其結合熱力學中所探討之能量的量與質，一生態系為結合許多組成的巨大能量，藉由生態㶲分析法，量化生態系之能量的傳遞與轉換，可作為了解生態系結構與功能的客觀評估方法。\n\n蔡尚惪、呂金誠、歐辰雄。生態系模式之研究與進展。中華林學季刊, 37(3), 2004。doi:10.30064/QJCF.200409.0009\n\nHau JL, Bakshi BR. Expanding exergy analysis to account for ecosystem products and services. Environ Sci Technol. 2004 Jul 1;38(13):3768-77. doi: 10.1021/es034513s. PMID: 15296331.","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-044","cat":"B","sub":"B1","name":"能值分析","desc":"能值分析法 (Emergy Analysis, EmA) 評估系統中各種資源和產品的價值，並將其轉換為等效的太陽能。這種方法基於熱力學理論，將各種資源和活動的能量投入量化為「emergy」（能量輸入，也被稱為「太陽能等價值」），使得不同類型的資源和活動可以進行比較和評估。在EmA中，太陽能被視為一種最基本和可再生的能源，因此將所有資源和活動的能量量化為等效的太陽能有助於我們更好地理解和評估其真實價值。EmA可以應用於多個領域，包括生態學、環境管理、永續發展等，幫助研究人員和政策制定者更好地理解和評估不同活動和決策對於環境的影響。(Wang et al., 2020, Cho, 2013)。EmA可分為四大階段：(1)系統邊界的界定與 Emergy 系統圖繪製；(2) 構建 Emergy 分析表；(3) 建立 Emergy 指標系統和計算相關指標；(4)解釋結果(系統可持續性分析與最佳方案選擇) (Wang et al., 2020)。目前EmA正快速發展中，然而Wang et al. (2020) 指出EmA一些不足，包含：無法分析資源消耗或廢物排放引起的直接或間接環境影響；各區域條件相異，使能值資料存在的地域特性；缺少模型不確定性的標準方法；邊界系統與條件假設中受主觀因素影響大；概念術語不清。\n\nCHO, C.-J. 2013. An exploration of reliable methods of estimating emergy requirements at the regional scale: Traditional emergy analysis, regional thermodynamic input–output analysis, or the conservation rule-implicit method. Ecological modelling, 251, 288-296.\nWANG, Q., XIAO, H., MA, Q., YUAN, X., ZUO, J., ZHANG, J., WANG, S. & WANG, M. 2020. Review of Emergy Analysis and Life Cycle Assessment: Coupling Development Perspective. Sustainability, 12, 367.","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-045","cat":"B","sub":"B1","name":"物質流分析","desc":"物質流分析(Material Flow Analysis，簡稱為 MFA)可以用於資源管理、廢棄物管理及環境管理，支援其決策分析，因為物質流分析是以系統性的方式，評估一個特定的區域及時間範圍內，物質的流量(flow)及存量(stock)。它的系統包含物質的來源(sources)、去向(pathways)、中間轉換(intermediate)及最終流向(final sink)。其目的如下：\n1. 用完整明確的定義將系統內物質流量與存量加以描述。\n2. 以合適的決策考量為基礎，盡可能的將系統簡化。\n3. 運用物質平衡概念並考量不確定性，進而量化目標物質的流量與存量。\n4. 用明確、可理解並具有再現性的方式呈現系統內物質的流量與存量。\n\n物質流帳(Material flows accounts，MFAs)可採用生命週期的系統觀點，以提供完整的環境資源管理資訊，追蹤物質從其開採、製造、使用、廢棄，至回收等階段之使用情形。\n\n中技社。2013。永續資源管理技術手冊","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-046","cat":"B","sub":"B1","name":"投入產出分析","desc":"投入產出分析（Input-Output Analysis） 是一種經濟分析方法，用來研究不同經濟部門之間的相互關係及其影響。其主要應用之一是用於分配環境成本（如排放或廢物處理）或資源消耗（如水或能源使用），將這些成本或消耗分配到不同的經濟活動中，以提高成本透明度和資源使用的理解。\n\n在不同的投入產出分析方法中，以下是幾種常見的應用：\n\n排放或廢物處理成本分配：這是傳統的應用方式，通過將排放或廢物處理的成本分配給經濟活動，來增強對成本結構的透明度。\n資源消耗與排放分配：這些方法將資源消耗或排放分配給經濟部門和最終需求，通常以物理單位表示，而不是貨幣單位。這種方法側重於量化資源的使用，並以物理尺度而非金錢為基準進行分析（例如Ayres和Knees（1969）、Isard（1972）等的研究）。\n環境影響因素的分配：一些研究還將環境影響評估中衍生的因素（如生態足跡或生命周期評估）納入分析。這些分析將焦點從單一的經濟發展價值轉移到同時考量資源消耗和排放的角度。\n\nBrander, L.M., van Beukering P., Balzan, M., Broekx, S., Liekens, I., Marta-Pedroso, C., Szkop, Z., Vause, J., Maes, J., Santos-Martin F. and Potschin-Young M. (2018). Report on economic mapping and assessment methods for ecosystem services. Deliverable D3.2 EU Horizon 2020 ESMERALDA Project, Grant agreement No. 642007\n\nAdrienne Grêt-Regamey and Susanne Kytzia. 2007 . Integrating the valuation of ecosystem services into the Input–Output economics of an Alpine region. Ecological Economics. 63(4), 786-798. https://doi.org/10.1016/j.ecolecon.2007.02.026","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-047","cat":"B","sub":"B1","name":"生態足跡","desc":"生態足跡（Ecological Footprint）：生態足跡是一種資源會計工具，用於衡量特定活動所需的地球再生能力。許多人類活動對地球的容量提出了要求，包括食物的供應和加工、住房的建造和維護、交通以及商品和服務的消費。透過比較每年所需的容量和可用的容量，生態足跡核算可以衡量人類對生物圈的需求超出生物圈滿足這些需求的能力的程度。\nWACKERNAGEL, M. & KITZES, J. 2008. Ecological Footprint. In: JøRGENSEN, S. E. & FATH, B. D. (eds.) Encyclopedia of Ecology. Oxford: Academic Press.","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"B1-048","cat":"B","sub":"B1","name":"土地覆蓋流","desc":"土地覆蓋流（Land Cover Flow）：分析土地利用和覆蓋變化對生態系統服務提供的影響，尤其在不同地區的流動性和變化。這些土地覆蓋類型包括森林、農田、濕地、城市區域等，而生態系統服務則是由這些不同的土地覆蓋類型提供並流向不同需求區域的服務。在評估生態系統服務時，土地覆蓋類型可以作為生態系統服務供應和需求的代理。根據土地覆蓋類型的變化，生態系統服務的流動也會有所改變，影響到這些服務的分布和可用性。生態系統服務的流動可以是自然的（例如，水流）或是人為的（例如，人的移動或運輸）。這些流動機制可能會根據不同的服務、土地覆蓋類型和分析的空間維度有所不同。\n\nVREBOS, D., STAES, J., VANDENBROUCKE, T., D׳HAEYER, T., JOHNSTON, R., MUHUMUZA, M., KASABEKE, C. & MEIRE, P. 2015. Mapping ecosystem service flows with land cover scoring maps for data-scarce regions. Ecosystem Services, 13, 28-40.","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-22"},{"id":"D1-014","cat":"D","sub":"D1","name":"Ecosystem valuation 網站","desc":"介紹生態系服務與貨幣量的價值估計方法。\n\nKing and Markowitz 2000。Ecosystem valuation。https://www.ecosystemvaluation.org/\nSite developed and written by Dennis M. King, Ph.D, Univ. of Maryland, and Marisa J. Mazzotta, Ph.D. with the technical assistance of Kenneth J. Markowitz, Esq.\n\nSite published in 2000, funded by US Department of Agriculture Natural Resources  Conservation Service and National  Oceanographic and Atmospheric Administration","tags":["生態系服務","生態系服務量化","指標"],"updated":"2024-11-25"},{"id":"B1-049","cat":"B","sub":"B1","name":"流域水文及生物多樣性生態系服務可用指標 (Angela et al., 2015)","desc":"生態系服務與可用的評估的指標  (Angela et al., 2015)\n水資源供給服務：河川可用水資源含量\n輸砂調節服務：河道泥砂傳遞能力、土壤沖蝕作用\n水質調節服務：水質污染程度\n生物多樣性支持服務：棲地多樣性、有機質含量\n\nAngela, C. B., Javier, C. J., Teresa, G. M., & Marisa, M. H. (2015). Hydrological evaluation of a peri-urban stream and its impact on ecosystem services potential. Global Ecology and Conservation, 3, 628-644","tags":["生態系服務","指標"],"updated":"2024-11-25"},{"id":"B1-050","cat":"B","sub":"B1","name":"流域水資源供給服務可用指標 (Notter et al., 2012)","desc":"水資源提供服務對象：可模擬及評估指標 (Notter et al., 2012)\n民生用水：河川可用水的95%\n畜牧用水：河川可用水的95%\n工業用水：河川可用水的95%\n農業用水：作物水壓力小於0.5以及河川可用水的75%\n水力發電：水力發電站的流量對應產生的電能\n\nNotter, B., Hurni, H., Wiesmann, U., & Abbaspour, K. C. (2012). Modelling water provision as an ecosystem service in a large East African river basin. Hydrology and Earth System Sciences, 16(1), 69-86.","tags":["生態系服務","水資源供給","供給服務","指標"],"updated":"2024-11-25"},{"id":"D1-015","cat":"D","sub":"D1","name":"IPBES","desc":"生物多樣性和生態系統服務政府間科學政策平台(Intergovernmental science-policy Platform on Biodiversity and Ecosystem Services，縮寫：IPBES) 為了評估自然對人類的貢獻 (NCP，Natural Contribution to People)框架最主要的目標在全面且有效的評估自然對人類福祉的影響，並將其納入決策過程中以達到永續發展，建立了一概念框架何評估NCP 價值已進行評估。此框架強調多元價值觀、公平分配、知識整合和參與式決策的重要性，並可以運用在多個領域，例如保育政策和永續發展策略的制定。其框架包含的五個步驟如下：\n1.\t明確定義相關的NCP；\n2.\t識別及分析不同利害關係人之間對NCP的多元價值。多元價值即在不同文化背景、社會階層或利益群體的人，在面對同一自然資源時的價值判斷會有所不同，例如：森林對開發商來說是木材來源，對原住民來說則是神聖的祖靈之地。\n3.\t評估NCP的變化如何影響人類生活品質，並其考量公平性。\n4.\t將價值觀融入政策制定和資源管理等決策過程。\n5.\t促進多元知識體系（包括科學知識和原住民知識）的整合與參與式決策。","tags":["生態系服務"],"updated":"2024-11-25"}];
+</script>
+<script>
+(() => {
+  "use strict";
+
+  /* ============================================================
+     Static reference data
+  ============================================================ */
+  const NAV_ITEMS = [
+    { id: "overview", label: "總覽", icon: iconHome() },
+    { id: "p1", label: "簡表(一)", icon: iconProfile1() },
+    { id: "flow", label: "規劃流程圖", icon: iconFlow() },
+    { id: "p3", label: "簡表(三)", icon: iconProfile3() },
+    { id: "database", label: "工具箱資料庫", icon: iconDb() },
+    { id: "match", label: "相似解方比對", icon: iconMatch() },
+    { id: "ai", label: "AI 問答助理", icon: iconAI() },
+  ];
+
+  const SUBCATS = [
+    { key: "A1", big: "A", label: "環境友善指引", color: "#0E6B70", desc: "國際永續利用生態系統之策略、評估指引" },
+    { key: "B1", big: "B", label: "指標與模式", color: "#4C7A3D", desc: "水文／水理模式、生態系服務評估指標" },
+    { key: "B2", big: "B", label: "決策支援系統", color: "#3D7A6E", desc: "決策輔助工具、框架" },
+    { key: "C1", big: "C", label: "干預手段", color: "#A8672C", desc: "流域中可採用之獨立干預手段" },
+    { key: "C2", big: "C", label: "案例與文獻", color: "#B5502C", desc: "研究案例、整合報告、專書" },
+    { key: "D1", big: "D", label: "資料庫與工具箱", color: "#6B5B95", desc: "基礎資料庫與國際相關工具箱" },
+  ];
+  const SUBCAT_MAP = Object.fromEntries(SUBCATS.map((s) => [s.key, s]));
+
+  // Only these subcategories map cleanly onto a single planner field.
+  // C1 items ARE intervention measures (干預手段). B1 items (indicators/models)
+  // are used to design monitoring & evaluation, not as interventions themselves.
+  // A1 (guidance/frameworks), B2 (decision-support systems), C2 (cases/literature)
+  // and D1 (databases) don't correspond to one specific planner box, so no
+  // "add to plan" action is offered for them — showing one would mislabel them.
+  const PLAN_TARGET_BY_SUB = {
+    C1: { field: "intervention", label: "干預手段" },
+    B1: { field: "monitoring", label: "監測與評估" },
+  };
+
+  const STAGES = [
+    {
+      title: "專案啟動",
+      en: "Project Initiation",
+      html: "課題與目標可能起源於過往對流域的了解與治理檢討，也可能來自民眾與專家意見、政府對地區發展的願景，或國際共識。",
+    },
+    {
+      title: "了解系統",
+      en: "System Understanding",
+      html:
+        "對應「社會挑戰」及其從屬元素（自然與社會互動模型、社會與經濟因子、氣候因子、地景／地下與生態因子）。<br><br>" +
+        "<b>盤點因子與建立概念模型</b>：了解經濟、社會、生態系統間的相互作用；邀請專家學者、政府部門、NGO、利害關係人共同釐清區域內事宜，建立概念模型。<br>" +
+        "<b>設定課題優先級</b>：IUCN NbS 標準 1.1 要求優先考慮權利持有者與受益者最迫切的社會挑戰，並公平尊重各參與者，尤其是當地民眾權益與意見。",
+    },
+    {
+      title: "制定行動計畫",
+      en: "Action Plan Development",
+      html:
+        "對應「干預手段」及其從屬元素。包含五大工項：<br>" +
+        "<b>構想方案</b>（工具箱 C；IWRM Tools C4、C5）－基於挑戰機制與參與者意見構思可能解方。<br>" +
+        "<b>評估方案</b>（工具箱 B；IWRM Tools C1）－評估預期成效、人類福祉／生態系裨益、協商權衡與經濟可行性。<br>" +
+        "<b>執行與合作機制</b>（IWRM Tools B3、C6）－確認工作分工與跨部門協作機制。<br>" +
+        "<b>制定監測與評估機制</b>（工具箱 SMART 監測法）－制定成效監測方式與基線，建立利害關係者反饋機制。<br>" +
+        "<b>選擇方案</b>－公正權衡各方案之效益、成本與執行難易度。若發現概念模型不足，回到「了解系統」。",
+    },
+    {
+      title: "方案確定與執行",
+      en: "Confirmation & Implementation",
+      html: "完善計畫內容，包含方案程序制定，以及執行與監督權責劃分，並依規劃各司其職。",
+    },
+    {
+      title: "監測與評估",
+      en: "Monitoring & Evaluation",
+      html:
+        "衡量成效、評估人類福祉／生態系裨益；檢查權衡界線是否受到越界；檢討利害關係者反饋。若有必要則回到「了解系統」精進概念模型與因子盤點。<br><br>" +
+        "滾動式監測與評估是本階段主要工作，並須確認 NbS 對氣候變遷、生物多樣性與人權等國家及全球目標有所貢獻。最後透過公開分享成果與經驗（含教訓），促進 NbS 的推廣與主流化。",
+    },
+  ];
+
+  const PLANNER_ROWS = [
+    {
+      cols: 1,
+      nodes: [
+        {
+          id: "challenge",
+          label: "社會挑戰",
+          tag: "標準 1.1–1.2",
+          hint:
+            "明確指出面臨的社會挑戰(標準1.1-1.2)；若有多重挑戰，優先考慮權利持有者和受益者最迫切的社會挑戰(標準1.1)。在後續欄位中釐清經濟、社會、生態系統之間的相互作用，以及此系統內外部重要因子。",
+        },
+      ],
+    },
+    { connector: true },
+    {
+      cols: 4,
+      nodes: [
+        {
+          id: "factor_ns",
+          label: "自然與社會互動模型",
+          tag: "工具箱 B",
+          hint:
+            "描述現況與可能之概念模式──經濟、社會、生態系統之間的相互作用(標準2.1–2.3)；重要風險(標準2.3)；生態系退化驅動(標準3.1)。模擬模式觀點：模式中的方程式與假設。(工具箱B；IWRM Tools B3、C1.09、C2)",
+        },
+        {
+          id: "factor_se",
+          label: "社會與經濟因子",
+          hint:
+            "釐清社會與經濟因子(標準2.1–2.3)、利害關係者(標準5.1–5.4、6.1)，以及內外部風險因子(標準2.3)；此決定所需收集之資料、分析手段。模擬模式觀點：模式輸入輸出。",
+        },
+        {
+          id: "factor_cl",
+          label: "氣候因子",
+          hint:
+            "釐清氣候因子(標準2.1–2.3)，可包含氣候風險因子（氣候變遷、極端氣候）(標準2.3)；此決定所需收集之資料、分析手段。模擬模式觀點：模式輸入輸出。",
+        },
+        {
+          id: "factor_land",
+          label: "地景／地下與生態因子",
+          hint:
+            "釐清地景／地下與生態相關因子：人以外的地面／地下因子(標準2.1–2.3)；生態系退化驅動因子(標準3.1)；此決定所需收集之資料、分析手段。模擬模式觀點：模式輸入輸出。",
+        },
+      ],
+    },
+    { connector: true },
+    { banner: "設計 NbS（標準 2）— 整合以上因子，構思可行的干預手段" },
+    { connector: true },
+    {
+      cols: 1,
+      nodes: [
+        {
+          id: "intervention",
+          label: "干預手段",
+          tag: "工具箱 C",
+          hint:
+            "本格用於描述如何處理社會挑戰之干預手段──藉由保護、永續管理、恢復自然以及改變生態系解決社會挑戰，提供人類福祉與生物多樣性裨益的行動。此行動不侷限於單一作為，可搭配其他非 NbS 干預的行動，如風險管理(標準2.3)。模擬模式觀點：模擬情境。(工具箱C；IWRM Tools C4、C5)",
+          pick: "C1",
+        },
+      ],
+    },
+    { connector: true },
+    {
+      cols: 2,
+      nodes: [
+        {
+          id: "outcome",
+          label: "預期成效",
+          tag: "工具箱 B",
+          hint:
+            "干預手段預期成效(標準1：有效應對社會挑戰)。與其他干預成效的互補(標準2.2)。模擬模式觀點：情境與結果。(工具箱B；IWRM Tools C1)",
+        },
+        {
+          id: "wellbeing",
+          label: "人類福祉／生態系裨益",
+          tag: "工具箱 B1",
+          hint:
+            "產生／犧牲人類福祉(標準1.3)；對生態系與生態系服務(裨益)之影響(標準3.1–3.4)。模擬模式觀點：情境與結果。(工具箱B1；IWRM Tools C1.05、C1.06)",
+        },
+      ],
+    },
+    { connector: true },
+    {
+      cols: 3,
+      nodes: [
+        {
+          id: "monitoring",
+          label: "監測與評估",
+          tag: "工具箱 B1",
+          hint:
+            "監測與評估方法(模式模擬、資料收集)，用於預測、衡量NbS成效與影響(標準1.3、3.2、3.3、7.1、7.2)；另外，包含權衡界線的檢查(標準6.3)。模擬模式觀點：對議題有意義且可量測的變數、指標。(工具箱B1；IWRM Tools C2.05)",
+        },
+        {
+          id: "tradeoff",
+          label: "協商／權衡",
+          tag: "IWRM Tools B3、C6",
+          hint:
+            "描述利害關係者、專家、部門之合作機制(標準2.2、5.1–5.5)。利害關係者權益與責任(標準6.2)。不同方案在成本、效果、環境、利害關係者權益責任等方面的權衡(標準6.1)。模擬模式觀點：約束條件與最佳化。(IWRM Tools B3、C6)",
+        },
+        {
+          id: "feasibility",
+          label: "經濟可行性",
+          tag: "IWRM Tools D",
+          hint: "是否經濟可行、是否受社會反對（協商）；本格直接對應 IUCN 標準 4.1–4.4。(IWRM Tools D)",
+        },
+      ],
+    },
+    { connector: true },
+    {
+      cols: 1,
+      nodes: [
+        {
+          id: "review",
+          label: "檢討與調整",
+          hint: "基於證據的適應性管理與持續學習(標準7.3、8.1)；必要時回到「了解系統」精進概念模型或行動方案。",
+        },
+      ],
+    },
+  ];
+
+  // Configuration for the two smaller, simpler NbS templates (簡表一、簡表三),
+  // each rendered as its own page/panel with its own auto-saved fields,
+  // PNG export, and JSON export/import — mirroring 簡表二's toolbar pattern
+  // but far fewer fields, so handled generically rather than duplicating
+  // the full PLANNER_ROWS machinery.
+  const SIMPLE_PROFILES = {
+    p1: {
+      storageKey: "nbs_profile1_state_v1",
+      captureId: "diagram-capture-p1",
+      pngName: "nbs-自然解方簡表一.png",
+      jsonName: "nbs-簡表一內容.json",
+      fields: [
+        { id: "challenge", label: "社會挑戰", hint: "面臨的社會挑戰是什麼？可直接沿用簡表(二)中的「社會挑戰」欄位內容，或用一兩句話濃縮描述。" },
+        {
+          id: "intervention",
+          label: "干預手段",
+          hint: "藉由保護、永續管理、恢復自然以及改變生態系解決此社會挑戰、提供人類福祉與生物多樣性裨益的行動。可沿用簡表(二)中的「干預手段」欄位內容。",
+        },
+      ],
+    },
+    p3: {
+      storageKey: "nbs_profile3_state_v1",
+      captureId: "diagram-capture-p3",
+      pngName: "nbs-自然解方簡表三.png",
+      jsonName: "nbs-簡表三內容.json",
+      fields: [
+        { id: "challenge", label: "挑戰｜案例背景與面臨之挑戰", hint: "簡述案例的背景，以及當初面臨的社會挑戰或課題。" },
+        { id: "action", label: "行動｜行動與目標", hint: "採取了哪些行動（NbS 干預手段）？期望達成的目標是什麼？" },
+        { id: "outcome", label: "結果｜行動後果", hint: "行動後之成效、引發的問題或效益等——可對應簡表(二)中的「預期成效」「人類福祉／生態系裨益」欄位。" },
+        { id: "lessons", label: "經驗與教訓", hint: "案例中重要的經驗與教訓，例如案例成功／失敗的關鍵因素。" },
+      ],
+    },
+  };
+
+
+  // Three real worked examples drawn directly from this project's own final
+  // report (第五章 示範操作自然解方案例規劃1處), covering the small / medium /
+  // large scale demonstration cases in the Lanyang River (蘭陽溪) basin.
+  // Clearly marked as demos in the UI — figures and IDs are as reported.
+  const DEMO_CASES = {
+    small: {
+      title: "小尺度｜安農溪上游河段（雙賢二號橋上游）",
+      challenge:
+        "安農溪（蘭陽溪支流）雙賢二號橋上游段：右岸有 4 處斷面未達 25 年重現期洪水防洪標準，面臨極端降雨下的溢淹風險；河道型態單一（Rosgen B 型、水流湍急、深槽貼右岸），生物多樣性偏低。目標：提高災害韌性，同時兼顧藍綠帶生態多樣化。",
+      factor_ns:
+        "安農溪流量受蘭陽發電廠尾水控制，近五年平均排放量約 18 cms（上限 31 cms），每年 3–5 天歲修無發電尾水；沿岸為泛舟、自行車道等觀光活動與農地、山區交錯之地景。",
+      factor_se:
+        "利害關係人含在地民眾、社區團體、非政府組織、村里辦公處、鄉鎮市公所與專家學者（引用「安農溪河川環境營造工程生態檢核及民眾參與」訪談）；多數期望整治避免過度人工化、保留現有物種與棲地，並兼顧泛舟觀光發展。",
+      factor_cl:
+        "以兩種情境模擬：(1) 25 年重現期洪水；(2) 95% 日延時曲線之生態基流量（7.8 cms）；發電機組歲修期間為低流量期，尾水排放上限 31 cms。",
+      factor_land:
+        "水理模型範圍為河川斷面樁號 96（天送埤圳）至 75（柑仔坑橋），以樁號 80（雙賢二號橋）為界；河道屬 Rosgen B 型（低蜿蜒度、穩定深槽、多急流）；棲地類型單一，右岸 4 處斷面未滿足 25 年重現期洪水位。",
+      intervention:
+        "- [C1-008] 滲漏木質水壩（跌水工法：規劃 7 處、每處 3 支、每支落差 30 公分，降低流速並塑造深潭、淺瀨等棲地異質性）\n生態砌石護岸 3 處（高度約 1.2 公尺，臨水面砌石並保留生態孔隙，以局部設計取代連續式堤防）。",
+      outcome:
+        "25 年重現期洪水模擬：生態護岸設計可使原淹水潛勢區域不再溢淹至用地範圍外。95% 日延時生態基流量情境：7 處跌水工可望降低 5 處流速過快密集區域之流速。",
+      wellbeing:
+        "生態系裨益：導入護岸與跌水設計後，臺灣石魚賓、粗首馬口鱲之可用棲息地面積（WUA）分別增至現況的 2.2 倍與 1.8 倍，棲地異質性（深潭、淺瀨、深流）提升。\n人類福祉：降低洪災風險、保留泛舟等觀光活動空間。",
+      monitoring:
+        "以棲地適合度指數（HSI）與可用棲息地面積（WUA）追蹤目標魚種棲地品質；以 HEC-RAS 水理模型追蹤 25 年重現期洪水位與生態基流量流速分布（模型率定誤差已控制在 3% 以內）；依 IUCN NbS 全球標準 8 大準則、28 項指標進行自我評估。",
+      tradeoff:
+        "25 年重現期洪水淹沒範圍與私有地高度重疊，還地於河或水砂溢淹區不符合現地需求，故改採局部生態護岸而非全河段連續堤防；須與蘭陽發電廠協調尾水排放，並與在地居民、泛舟業者溝通施工期間影響。",
+      feasibility:
+        "採局部（3 處）生態護岸與跌水工，較連續堤防成本低、施工範圍小；仍待以內政部核發之 1 公尺網格數值地形模型重新率定水理模型（現用團隊自行空拍 DTM）。",
+      review:
+        "期中審查後將以 1 公尺網格數值地形模型重新率定，並依 NbS 措施模擬結果調整護岸與跌水配置；如生態調查顯示效果不足，回到「了解系統」重新檢視魚種選定與棲地目標。",
+    },
+    medium: {
+      title: "中尺度｜蘭陽溪口野生動物棲地",
+      challenge:
+        "蘭陽溪口野生動物重要棲地（水鳥保護區）之保護與維持；周邊農業活動（施肥、農藥）為主要威脅來源。挑戰在於如何維持在地農業生計的同時，管制其對棲地之環境衝擊。",
+      factor_ns:
+        "棲地範圍主要土地利用為水體、沙洲／灘地及農業用地；農業活動、河岸遊憩、腳踏車活動、道路等人為活動與水鳥棲地相互影響。",
+      factor_se:
+        "利害關係人包含在地農民、社區團體、非政府組織、村里辦公處、鄉鎮市公所與專家學者；核心議題為如何與在地農民協調施肥、農藥用量、種植範圍與生態緩衝區設置。",
+      factor_cl:
+        "以 InVEST 棲地品質模組比較現況與 NbS（農業管制）情境下之棲地品質變化。",
+      factor_land:
+        "棲地對應土地利用之棲地指數（habitat）：水體與混合林為 1、沙洲/灘地 0.7、農業 0.5、畜牧 0.4、草生地與公園 0.3、都市建築／道路／堤防為 0；主要威脅含農藥肥料汙染、汙水、河岸遊憩與腳踏車活動、道路。",
+      intervention:
+        "- [C1-013] 農業土地管理（推廣有機農業、設置生態緩衝區，降低施肥與農藥對棲地之衝擊）\n對應工具箱指引：避免破壞保護區自然環境、設置濱溪帶、設立生態緩衝區、確保河川廊道延續、因地制宜之生態經營原則。",
+      outcome:
+        "InVEST 棲地品質模擬顯示：執行農業管制措施後，農業用地之棲地品質明顯上升、威脅程度下降，棲地範圍整體棲地品質提升。",
+      wellbeing:
+        "生態系裨益：蘭陽溪口水鳥棲地品質與生物多樣性提升。\n人類福祉：農業管制措施需與在地農民協商，兼顧生計；後續發現主要威脅逐漸由農業活動轉為污水排放，需納入污水管理機關。",
+      monitoring:
+        "以 InVEST 棲地品質指標比較現況與 NbS 情境；後續需與區域農業管理機關、污水管理機關共同監測污水排放對棲地之影響。",
+      tradeoff:
+        "限制保護區周邊農業活動 vs. 在地農民生計權益，需協調在地農民逐步導入有機農業與生態緩衝區；污水管理牽涉跨機關協調，非水利單位可單獨解決。",
+      feasibility:
+        "以既有 InVEST 模式與公開土地利用資料即可完成模擬評估，資料與模式成本相對低；污水管理措施則需跨機關協調預算與權責，執行門檻較高。",
+      review:
+        "若棲地品質提升有限（如污水威脅未降低），回到「了解系統」，將污水管理機關納入協作，重新盤點威脅因子與改善目標。",
+    },
+    large: {
+      title: "大尺度｜蘭陽溪流域水土保持",
+      challenge:
+        "蘭陽溪流域中、上游崩塌地與裸露地造成河道土砂淤塞、通洪能力下降；現況年土壤沖蝕量約 2,400 萬噸，主要來源為崩塌地（約 955 萬噸）與混合林（約 928 萬噸）。目標：優先治理具保全戶之高危害度崩塌區域，逐步改善中上游水土保持。",
+      factor_ns:
+        "研究範圍涵蓋蘭陽溪整體流域（約 978 平方公里），治理權責跨水利署第一河川分署、農村水保署、林業保育署等多機關，需跨部門整合。",
+      factor_se:
+        "利害關係人包含在地居民（保全戶）、非政府組織、村里辦公處、鄉鎮市公所、專家學者及山坡地主管機關；因部分崩塌區域未包含保全戶，優先順序需在「生命安全」與「治理資源有限」間權衡。",
+      factor_cl:
+        "以現況水土保持係數（USLE P factor = 1）為基線，模擬情境將農地、裸露地、崩塌地之 P factor 分別調整為 0.5、0.7、0.65。",
+      factor_land:
+        "流域森林佔 68.91%、農地 15.73%、都市 2.96%、崩塌地 1.47%；崩塌地主要分布於中上游山區；燒水溪、石門溪、牛鬥山、碼崙溪、天狗溪、土場溪、白嶺溪、米摩登溪、夫布爾溪、梵梵溪等子集水區曾發生大規模土砂運移事件。",
+      intervention:
+        "流域尺度水土保持措施：崩塌地與裸露地治理（水土保持係數改善）、[C1-013] 農業土地管理（農地水土保持係數改善）；優先處理具保全戶之高風險子集水區，後續逐步擴大至中、上游全域。",
+      outcome:
+        "InVEST 模擬：實施水土保持措施後，流域整體土壤沖蝕量減少約 460 萬噸（崩塌地與裸露地減少約 337 萬噸、農地減少約 120 萬噸），崩塌區域單位面積沖蝕量降至約 793 公噸/公頃/年。流域年輸砂量整體減少約 24.54%，其中米摩登溪、土場溪輸砂量分別下降 31.69%（15.7 萬噸）與 29.81%（13.1 萬噸）。",
+      wellbeing:
+        "人類福祉：降低河道土砂淤塞與通洪空間不足之風險，減少下游保全對象之災害風險。\n生態系裨益：提升流域整體土壤保育服務。",
+      monitoring:
+        "以 InVEST 土壤保育模組比較現況與 NbS 情境之土壤沖蝕量、輸砂量；長期追蹤具保全戶之高風險子集水區治理成效。",
+      tradeoff:
+        "崩塌地水土保持措施涉及水利署、農村水保署、林業保育署等多機關協調；治理優先順序需在「具保全戶之安全需求」與「治理資源有限」間取捨。",
+      feasibility:
+        "以現有土地利用與 DEM 資料即可完成 InVEST 模擬，資料與模式成本低；惟實際治理工程涉及跨部會預算協調與長期執行，落地門檻較高。",
+      review:
+        "現況模擬結果仍待與利害關係人共同討論治理方針；後續應依政府與利害關係人共同推動之策略，滾動修正治理優先順序與範圍。",
+    },
+  };
+
+
+
+  /* ============================================================
+     State
+  ============================================================ */
+  let TOOLS = [];
+  let activePanel = "overview";
+  let dbSearch = "";
+  let dbCat = "ALL";
+  let dbTags = new Set();
+  let expandedCards = new Set();
+
+  const PLANNER_KEY = "nbs_planner_state_v1";
+  const THEME_KEY = "nbs_theme_pref_v1";
+
+  /* ============================================================
+     Boot
+  ============================================================ */
+  document.addEventListener("DOMContentLoaded", init);
+
+  async function init() {
+    renderNav();
+    initTheme();
+    renderStepper();
+    renderPlannerGrid();
+    loadPlannerState();
+    wireGlobalControls();
+    wireConfirmModal();
+    wireExportPreviewPanel("");
+    wireExportPreviewPanel("-p1");
+    wireExportPreviewPanel("-p3");
+    wireFlowToolbar();
+    wireDatabasePanel();
+    wireMatchPanel();
+    wireAIPanel();
+    loadSimpleState("p1");
+    loadSimpleState("p3");
+    wireSimpleProfile("p1");
+    wireSimpleProfile("p3");
+    wireCopyFromPlanner();
+
+    try {
+      TOOLS = window.__NBS_TOOLBOX_DATA__ || [];
+    } catch (e) {
+      TOOLS = [];
+      console.error("Failed to load toolbox data", e);
+    }
+
+    renderOverviewStats();
+    renderCatLegend();
+    renderCatChips();
+    renderTagChips();
+    renderResults();
+  }
+
+  /* ============================================================
+     Navigation / panels
+  ============================================================ */
+  function renderNav() {
+    const nav = document.getElementById("nav");
+    const topbar = document.getElementById("topbar");
+    nav.innerHTML = "";
+    topbar.innerHTML = "";
+    NAV_ITEMS.forEach((item, i) => {
+      const btn = document.createElement("button");
+      btn.className = "nav-item" + (item.id === activePanel ? " active" : "");
+      btn.innerHTML = item.icon + `<span>${item.label}</span><span class="nav-num">${String(i).padStart(2, "0")}</span>`;
+      btn.addEventListener("click", () => setPanel(item.id));
+      nav.appendChild(btn);
+
+      const tbtn = document.createElement("button");
+      tbtn.className = item.id === activePanel ? "active" : "";
+      tbtn.textContent = item.label;
+      tbtn.addEventListener("click", () => setPanel(item.id));
+      topbar.appendChild(tbtn);
+    });
+  }
+
+  function setPanel(id) {
+    activePanel = id;
+    document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + id));
+    renderNav();
+    window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+  }
+
+  function wireGlobalControls() {
+    document.querySelectorAll("[data-goto]").forEach((el) => {
+      el.addEventListener("click", () => setPanel(el.getAttribute("data-goto")));
+    });
+  }
+
+  /* ============================================================
+     Theme
+  ============================================================ */
+  function initTheme() {
+    const saved = localStorage.getItem(THEME_KEY) || "system";
+    applyTheme(saved);
+    document.querySelectorAll("#themeToggle button").forEach((b) => {
+      b.classList.toggle("active", b.dataset.theme === saved);
+      b.addEventListener("click", () => {
+        applyTheme(b.dataset.theme);
+        localStorage.setItem(THEME_KEY, b.dataset.theme);
+        document.querySelectorAll("#themeToggle button").forEach((x) => x.classList.toggle("active", x === b));
+      });
+    });
+  }
+  function applyTheme(pref) {
+    const root = document.documentElement;
+    if (pref === "system") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", pref);
+  }
+
+  /* ============================================================
+     Overview
+  ============================================================ */
+  function renderOverviewStats() {
+    const total = TOOLS.length;
+    const c1 = TOOLS.filter((t) => t.sub === "C1").length;
+    const a1 = TOOLS.filter((t) => t.sub === "A1").length;
+    const stats = [
+      { n: total || "—", l: "工具箱項目總數" },
+      { n: 6, l: "工具子分類（A／B1／B2／C1／C2／D）" },
+      { n: c1 || "—", l: "河溪干預手段（C1）" },
+      { n: 5, l: "NbS 導入流程階段" },
+    ];
+    const row = document.getElementById("statRow");
+    row.innerHTML = stats
+      .map((s) => `<div class="stat-tile"><div class="stat-num">${s.n}</div><div class="stat-label">${s.l}</div></div>`)
+      .join("");
+    void a1;
+  }
+
+  function renderCatLegend() {
+    const wrap = document.getElementById("catLegend");
+    wrap.innerHTML = SUBCATS.map((s) => {
+      const count = TOOLS.filter((t) => t.sub === s.key).length;
+      return `<div class="cat-row">
+        <div class="cat-chip-lg" style="background:${s.color}">${s.key}</div>
+        <div class="txt"><b>${s.label}</b><span>${s.desc}${count ? " · " + count + " 項" : ""}</span></div>
+      </div>`;
+    }).join("");
+  }
+
+  /* ============================================================
+     Flow — stepper
+  ============================================================ */
+  function renderStepper() {
+    const stepper = document.getElementById("stepper");
+    stepper.innerHTML = STAGES.map(
+      (s, i) => `
+      <div class="step" data-idx="${i}">
+        <div class="n">${i + 1}</div>
+        <h4>${s.title}<br><span style="font-weight:400;color:var(--muted);font-size:13px;">${s.en}</span></h4>
+        <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>`
+    ).join("");
+
+    const detailsWrap = document.getElementById("stepDetails");
+    detailsWrap.innerHTML = STAGES.map((s, i) => `<div class="step-detail" data-idx="${i}"><b>${s.title}｜${s.en}</b><br><br>${s.html}</div>`).join("");
+
+    stepper.querySelectorAll(".step").forEach((el) => {
+      el.addEventListener("click", () => {
+        const idx = el.getAttribute("data-idx");
+        const detail = detailsWrap.querySelector(`.step-detail[data-idx="${idx}"]`);
+        const wasOpen = detail.classList.contains("open");
+        detailsWrap.querySelectorAll(".step-detail").forEach((d) => d.classList.remove("open"));
+        if (!wasOpen) detail.classList.add("open");
+      });
+    });
+  }
+
+  /* ============================================================
+     Flow — planner grid
+  ============================================================ */
+  function renderPlannerGrid() {
+    const grid = document.getElementById("plannerGrid");
+    let html = "";
+    PLANNER_ROWS.forEach((row) => {
+      if (row.connector) {
+        html += `<div class="flow-connector"><svg viewBox="0 0 18 22" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 1v16m0 0l-5-5m5 5l5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+        return;
+      }
+      if (row.banner) {
+        html += `<div class="node" style="background:var(--accent-soft);border-color:var(--accent);align-items:center;text-align:center;">
+          <span style="font-size:14.5px;font-weight:700;color:var(--accent-ink);">${row.banner}</span>
+        </div>`;
+        return;
+      }
+      html += `<div class="flow-row cols-${row.cols}">`;
+      row.nodes.forEach((node) => {
+        html += `<div class="node${row.cols === 1 && node.id === "challenge" ? " hub" : ""}">
+          <div class="node-label"><span>${node.label}</span>${node.tag ? `<span style="font-weight:500;color:var(--muted);">· ${node.tag}</span>` : ""}
+            ${node.pick ? `<button class="pick-btn" data-pick="${node.pick}" data-field="${node.id}">從資料庫挑選</button>` : ""}
+          </div>
+          <div class="hint">${node.hint}</div>
+          <textarea id="field-${node.id}" data-field="${node.id}" placeholder="輸入你的專案內容…"></textarea>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    grid.innerHTML = html;
+
+    grid.querySelectorAll("textarea[data-field]").forEach((ta) => {
+      ta.addEventListener("input", () => {
+        savePlannerState();
+        showSaveIndicator();
+      });
+    });
+    grid.querySelectorAll("[data-pick]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        dbCat = btn.getAttribute("data-pick");
+        setPanel("database");
+        renderCatChips();
+        renderResults();
+        showToast("已篩選「" + SUBCAT_MAP[dbCat].label + "」，點選項目下方「加入規劃圖」即可帶入");
+      });
+    });
+  }
+
+  function getPlannerState() {
+    const state = {};
+    PLANNER_ROWS.forEach((row) => {
+      if (!row.nodes) return;
+      row.nodes.forEach((n) => {
+        const el = document.getElementById("field-" + n.id);
+        if (el) state[n.id] = el.value;
+      });
+    });
+    return state;
+  }
+  function setPlannerState(state) {
+    Object.keys(state || {}).forEach((k) => {
+      const el = document.getElementById("field-" + k);
+      if (el) el.value = state[k];
+    });
+  }
+  function savePlannerState() {
+    try {
+      localStorage.setItem(PLANNER_KEY, JSON.stringify(getPlannerState()));
+    } catch (e) {}
+  }
+  function loadPlannerState() {
+    try {
+      const raw = localStorage.getItem(PLANNER_KEY);
+      if (raw) setPlannerState(JSON.parse(raw));
+    } catch (e) {}
+  }
+  let saveTimer = null;
+  function showSaveIndicator() {
+    const el = document.getElementById("saveText");
+    el.textContent = "已儲存 · " + new Date().toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" });
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => (el.textContent = "已自動儲存在本機"), 2500);
+  }
+
+  /* ============================================================
+     Flow — toolbar actions (export / import / reset)
+  ============================================================ */
+  function wireFlowToolbar() {
+    document.getElementById("btnLoadDemo").addEventListener("click", async () => {
+      const key = document.getElementById("demoCaseSelect").value;
+      const demo = DEMO_CASES[key];
+      if (!demo) return;
+      const hasContent = Object.values(getPlannerState()).some((v) => (v || "").trim());
+      if (hasContent) {
+        const ok = await showConfirm("載入示範案例會覆蓋目前已輸入的內容，確定要繼續嗎？");
+        if (!ok) return;
+      }
+      setPlannerState(demo);
+      savePlannerState();
+      showToast("已載入示範案例：" + demo.title + "（可自行修改或清除）");
+    });
+
+    document.getElementById("btnResetFlow").addEventListener("click", async () => {
+      const ok = await showConfirm("確定要清除規劃流程圖中所有已輸入的內容嗎？此操作無法復原。");
+      if (!ok) return;
+      PLANNER_ROWS.forEach((row) => {
+        if (!row.nodes) return;
+        row.nodes.forEach((n) => {
+          const el = document.getElementById("field-" + n.id);
+          if (el) el.value = "";
+        });
+      });
+      savePlannerState();
+      showToast("已清除規劃內容");
+    });
+
+    document.getElementById("btnExportJson").addEventListener("click", async () => {
+      const state = getPlannerState();
+      const payload = JSON.stringify({ exportedAt: new Date().toISOString(), planner: state }, null, 2);
+      await offerDownload("nbs-規劃內容.json", payload);
+      showExportPreview("nbs-規劃內容.json", "text", payload);
+    });
+
+    document.getElementById("btnImportJson").addEventListener("click", () => {
+      document.getElementById("fileImport").click();
+    });
+    document.getElementById("fileImport").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          setPlannerState(data.planner || data);
+          savePlannerState();
+          showToast("已匯入規劃內容");
+        } catch (err) {
+          showToast("檔案格式錯誤，無法匯入");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+
+    document.getElementById("btnExportPng").addEventListener("click", exportDiagramPng);
+  }
+
+  // html2canvas cannot reliably rasterize <textarea> contents: it neither
+  // reflows the wrapped text the way the browser does nor renders text that
+  // is scrolled out of view when the box is shorter than its content — so a
+  // long note came out unwrapped and cut off. Fix: swap every textarea for a
+  // plain div that mirrors its text and box styling (fixed width so wrapping
+  // matches, height auto-grown to the full content so nothing is clipped),
+  // capture, then restore the live textareas.
+  function swapTextareasForCapture(root) {
+    const restoreFns = [];
+    root.querySelectorAll("textarea").forEach((ta) => {
+      const cs = getComputedStyle(ta);
+      const mirror = document.createElement("div");
+      mirror.textContent = ta.value || "";
+      Object.assign(mirror.style, {
+        boxSizing: "border-box",
+        width: ta.offsetWidth + "px",
+        minHeight: ta.offsetHeight + "px",
+        padding: cs.padding,
+        border: cs.border,
+        borderRadius: cs.borderRadius,
+        background: cs.backgroundColor,
+        color: cs.color,
+        fontFamily: cs.fontFamily,
+        fontSize: cs.fontSize,
+        fontWeight: cs.fontWeight,
+        lineHeight: cs.lineHeight,
+        letterSpacing: cs.letterSpacing,
+        textAlign: cs.textAlign,
+        whiteSpace: "pre-wrap",
+        overflowWrap: "break-word",
+        margin: cs.margin,
+      });
+      ta.insertAdjacentElement("afterend", mirror);
+      const prevDisplay = ta.style.display;
+      ta.style.display = "none";
+      restoreFns.push(() => {
+        mirror.remove();
+        ta.style.display = prevDisplay;
+      });
+    });
+    return () => restoreFns.forEach((fn) => fn());
+  }
+
+  async function exportDiagramPng() {
+    const btn = document.getElementById("btnExportPng");
+    const original = btn.innerHTML;
+    btn.innerHTML = "產生圖片中…";
+    btn.disabled = true;
+    let restore = null;
+    try {
+      const target = document.getElementById("diagram-capture");
+      restore = swapTextareasForCapture(target);
+      // let the mirror divs (which may be taller than the original boxes) lay out
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+      const bg = getComputedStyle(document.body).getPropertyValue("--ground").trim() || "#ffffff";
+      const canvas = await html2canvas(target, { backgroundColor: bg, scale: Math.min(2, window.devicePixelRatio || 1.5) });
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) throw new Error("無法產生圖片");
+      await offerDownload("nbs-解方規劃流程圖.png", blob);
+      showExportPreview("nbs-解方規劃流程圖.png", "image", blob);
+    } catch (err) {
+      console.error(err);
+      showToast("匯出圖片失敗，請稍後再試");
+    } finally {
+      if (restore) restore();
+      btn.innerHTML = original;
+      btn.disabled = false;
+    }
+  }
+
+  /* Standalone build: trigger a normal browser download via a temporary
+     <a download> link + object URL (no Claude artifact sandbox here, so
+     this works directly). */
+  async function offerDownload(filename, data) {
+    try {
+      const blob =
+        data instanceof Blob
+          ? data
+          : new Blob([data], { type: filename.endsWith(".json") ? "application/json" : "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      showToast("已下載：" + filename);
+    } catch (err) {
+      console.error(err);
+      showToast("下載失敗，請改用瀏覽器截圖或列印功能");
+    }
+  }
+
+  /* ============================================================
+     Simple profile pages — 自然解方簡表(一) / (三)
+     Generic auto-save + export/import/reset for the two smaller templates,
+     each with just a handful of fields (unlike 簡表(二)'s full PLANNER_ROWS).
+  ============================================================ */
+  function simpleFieldEl(profileKey, fieldId) {
+    return document.getElementById(profileKey + "-field-" + fieldId);
+  }
+  function getSimpleState(profileKey) {
+    const cfg = SIMPLE_PROFILES[profileKey];
+    const state = {};
+    cfg.fields.forEach((f) => {
+      const el = simpleFieldEl(profileKey, f.id);
+      if (el) state[f.id] = el.value;
+    });
+    return state;
+  }
+  function setSimpleState(profileKey, state) {
+    const cfg = SIMPLE_PROFILES[profileKey];
+    cfg.fields.forEach((f) => {
+      const el = simpleFieldEl(profileKey, f.id);
+      if (el && state && state[f.id] !== undefined) el.value = state[f.id];
+    });
+  }
+  function saveSimpleState(profileKey) {
+    try {
+      localStorage.setItem(SIMPLE_PROFILES[profileKey].storageKey, JSON.stringify(getSimpleState(profileKey)));
+    } catch (e) {}
+  }
+  function loadSimpleState(profileKey) {
+    try {
+      const raw = localStorage.getItem(SIMPLE_PROFILES[profileKey].storageKey);
+      if (raw) setSimpleState(profileKey, JSON.parse(raw));
+    } catch (e) {}
+  }
+
+  async function exportSimpleDiagramPng(profileKey) {
+    const cfg = SIMPLE_PROFILES[profileKey];
+    const btn = document.getElementById("btnExportPng-" + profileKey);
+    const original = btn.innerHTML;
+    btn.innerHTML = "產生圖片中…";
+    btn.disabled = true;
+    let restore = null;
+    try {
+      const target = document.getElementById(cfg.captureId);
+      restore = swapTextareasForCapture(target);
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const bg = getComputedStyle(document.body).getPropertyValue("--ground").trim() || "#ffffff";
+      const canvas = await html2canvas(target, { backgroundColor: bg, scale: Math.min(2, window.devicePixelRatio || 1.5) });
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) throw new Error("無法產生圖片");
+      await offerDownload(cfg.pngName, blob);
+      showExportPreview(cfg.pngName, "image", blob, "-" + profileKey);
+    } catch (err) {
+      console.error(err);
+      showToast("匯出圖片失敗，請稍後再試");
+    } finally {
+      if (restore) restore();
+      btn.innerHTML = original;
+      btn.disabled = false;
+    }
+  }
+
+  function wireSimpleProfile(profileKey) {
+    const cfg = SIMPLE_PROFILES[profileKey];
+    cfg.fields.forEach((f) => {
+      const el = simpleFieldEl(profileKey, f.id);
+      if (el) el.addEventListener("input", () => saveSimpleState(profileKey));
+    });
+
+    const pngBtn = document.getElementById("btnExportPng-" + profileKey);
+    if (pngBtn) pngBtn.addEventListener("click", () => exportSimpleDiagramPng(profileKey));
+
+    const jsonBtn = document.getElementById("btnExportJson-" + profileKey);
+    if (jsonBtn) {
+      jsonBtn.addEventListener("click", async () => {
+        const payload = JSON.stringify({ exportedAt: new Date().toISOString(), profile: profileKey, data: getSimpleState(profileKey) }, null, 2);
+        await offerDownload(cfg.jsonName, payload);
+        showExportPreview(cfg.jsonName, "text", payload, "-" + profileKey);
+      });
+    }
+
+    const importBtn = document.getElementById("btnImportJson-" + profileKey);
+    const fileInput = document.getElementById("fileImport-" + profileKey);
+    if (importBtn && fileInput) {
+      importBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(reader.result);
+            setSimpleState(profileKey, parsed.data || parsed);
+            saveSimpleState(profileKey);
+            showToast("已匯入內容");
+          } catch (err) {
+            showToast("檔案格式錯誤，無法匯入");
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = "";
+      });
+    }
+
+    const resetBtn = document.getElementById("btnReset-" + profileKey);
+    if (resetBtn) {
+      resetBtn.addEventListener("click", async () => {
+        const ok = await showConfirm("確定要清除此頁所有已輸入的內容嗎？此操作無法復原。");
+        if (!ok) return;
+        cfg.fields.forEach((f) => {
+          const el = simpleFieldEl(profileKey, f.id);
+          if (el) el.value = "";
+        });
+        saveSimpleState(profileKey);
+        showToast("已清除內容");
+      });
+    }
+  }
+
+  // 簡表(一) convenience: pull the already-filled 社會挑戰／干預手段 straight
+  // over from 簡表(二)'s planner grid, since both ask for the same content.
+  function wireCopyFromPlanner() {
+    const btn = document.getElementById("btnCopyFromP2");
+    if (!btn) return;
+    btn.addEventListener("click", async () => {
+      const challenge = (document.getElementById("field-challenge") || {}).value || "";
+      const intervention = (document.getElementById("field-intervention") || {}).value || "";
+      if (!challenge && !intervention) {
+        showToast("簡表(二)目前尚無「社會挑戰」或「干預手段」內容可帶入");
+        return;
+      }
+      const hasContent = Object.values(getSimpleState("p1")).some((v) => (v || "").trim());
+      if (hasContent) {
+        const ok = await showConfirm("帶入簡表(二)的內容會覆蓋此頁目前已輸入的內容，確定要繼續嗎？");
+        if (!ok) return;
+      }
+      setSimpleState("p1", { challenge, intervention });
+      saveSimpleState("p1");
+      showToast("已從簡表(二)帶入內容");
+    });
+  }
+
+
+  /* ============================================================
+     Database
+  ============================================================ */
+  function wireDatabasePanel() {
+    document.getElementById("dbSearch").addEventListener("input", (e) => {
+      dbSearch = e.target.value.trim();
+      renderResults();
+    });
+  }
+
+  function renderCatChips() {
+    const wrap = document.getElementById("catChips");
+    const all = [{ key: "ALL", label: "全部", color: "var(--ink-soft)" }, ...SUBCATS];
+    wrap.innerHTML = all
+      .map((c) => `<button class="chip${dbCat === c.key ? " active" : ""}" data-cat="${c.key}">${c.key === "ALL" ? "全部" : c.key + "｜" + c.label}</button>`)
+      .join("");
+    wrap.querySelectorAll("[data-cat]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        dbCat = btn.getAttribute("data-cat");
+        renderCatChips();
+        renderResults();
+      });
+    });
+  }
+
+  function computeTopTags(limit) {
+    const freq = {};
+    TOOLS.forEach((t) => (t.tags || []).forEach((tag) => (freq[tag] = (freq[tag] || 0) + 1)));
+    return Object.entries(freq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map((e) => e[0]);
+  }
+
+  function renderTagChips() {
+    const wrap = document.getElementById("tagChips");
+    const top = computeTopTags(16);
+    wrap.innerHTML = top.map((t) => `<button class="tagchip${dbTags.has(t) ? " active" : ""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join("");
+    wrap.querySelectorAll("[data-tag]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tag = btn.getAttribute("data-tag");
+        if (dbTags.has(tag)) dbTags.delete(tag);
+        else dbTags.add(tag);
+        renderTagChips();
+        renderResults();
+      });
+    });
+  }
+
+  function filteredTools() {
+    let list = TOOLS;
+    if (dbCat !== "ALL") list = list.filter((t) => t.sub === dbCat);
+    if (dbTags.size) list = list.filter((t) => (t.tags || []).some((tg) => dbTags.has(tg)));
+    if (dbSearch) {
+      const q = dbSearch.toLowerCase();
+      list = list.filter(
+        (t) =>
+          t.name.toLowerCase().includes(q) ||
+          t.desc.toLowerCase().includes(q) ||
+          t.id.toLowerCase().includes(q) ||
+          (t.tags || []).some((tg) => tg.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }
+
+  function renderResults() {
+    const list = filteredTools();
+    document.getElementById("resultMeta").textContent = `共 ${list.length} 項結果（資料庫總計 ${TOOLS.length} 項）`;
+    const wrap = document.getElementById("resultList");
+    if (!list.length) {
+      wrap.innerHTML = `<div class="empty-state">找不到符合條件的工具，試試調整關鍵字或分類篩選。</div>`;
+      return;
+    }
+    wrap.innerHTML = list
+      .map((t) => {
+        const sc = SUBCAT_MAP[t.sub] || { color: "#888", label: t.sub };
+        const expanded = expandedCards.has(t.id);
+        const target = PLAN_TARGET_BY_SUB[t.sub];
+        return `<div class="card result-card" data-id="${t.id}">
+          <div class="result-top">
+            <span class="cat-chip" style="background:${sc.color}">${t.id}</span>
+            <span class="result-name">${escapeHtml(t.name)}</span>
+          </div>
+          <p class="result-desc${expanded ? " expanded" : ""}">${escapeHtml(t.desc)}</p>
+          <div class="result-foot">
+            <div class="result-tags">${(t.tags || []).map((tg) => `<span class="mini-tag">${escapeHtml(tg)}</span>`).join("")}</div>
+            <button class="link-btn" data-expand="${t.id}">${expanded ? "收合" : "展開全文"}</button>
+            ${target ? `<button class="link-btn" data-addplan="${t.id}" data-field="${target.field}" data-flabel="${target.label}">＋ 加入規劃圖（${target.label}）</button>` : ""}
+          </div>
+        </div>`;
+      })
+      .join("");
+
+    wrap.querySelectorAll("[data-expand]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-expand");
+        if (expandedCards.has(id)) expandedCards.delete(id);
+        else expandedCards.add(id);
+        renderResults();
+      });
+    });
+    wrap.querySelectorAll("[data-addplan]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-addplan");
+        const tool = TOOLS.find((t) => t.id === id);
+        if (!tool) return;
+        addToolToField(tool, btn.getAttribute("data-field"), btn.getAttribute("data-flabel"));
+      });
+    });
+  }
+
+  function addToolToField(tool, fieldId, fieldLabel) {
+    const el = document.getElementById("field-" + fieldId);
+    const line = `- [${tool.id}] ${tool.name}`;
+    if (el) {
+      el.value = el.value ? el.value.replace(/\s+$/, "") + "\n" + line : line;
+      savePlannerState();
+    }
+    showToast("已加入規劃圖：" + fieldLabel);
+  }
+
+  /* ============================================================
+     Similarity match — local, in-browser only (no AI / no network)
+  ============================================================ */
+  function wireMatchPanel() {
+    document.getElementById("btnLocalMatch").addEventListener("click", runLocalMatch);
+  }
+
+  function bigrams(str) {
+    const s = str.replace(/\s+/g, "");
+    const arr = [];
+    for (let i = 0; i < s.length - 1; i++) arr.push(s.substr(i, 2));
+    return arr;
+  }
+
+  function scoreTool(tool, queryBigrams, queryWords) {
+    const text = (tool.name + " " + tool.desc + " " + (tool.tags || []).join(" ")).toLowerCase();
+    let score = 0;
+    const tb = new Set(bigrams(text));
+    queryBigrams.forEach((bg) => {
+      if (tb.has(bg)) score += 1;
+    });
+    queryWords.forEach((w) => {
+      if (w.length >= 2 && text.includes(w)) score += 3;
+    });
+    (tool.tags || []).forEach((tag) => {
+      if (queryWords.some((w) => w.length >= 2 && tag.toLowerCase().includes(w))) score += 4;
+    });
+    return score;
+  }
+
+  function getLocalMatches(query, limit) {
+    const q = query.toLowerCase();
+    const qBigrams = bigrams(q);
+    const qWords = q
+      .split(/[^a-z0-9一-鿿]+/i)
+      .map((w) => w.trim())
+      .filter(Boolean);
+    const scored = TOOLS.map((t) => ({ tool: t, score: scoreTool(t, qBigrams, qWords) })).filter((r) => r.score > 0);
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, limit || 12);
+  }
+
+  function runLocalMatch() {
+    const query = document.getElementById("queryInput").value.trim();
+    const wrap = document.getElementById("localMatchWrap");
+    if (!query) {
+      wrap.innerHTML = `<div class="empty-state" style="padding:24px 8px;">請先在上方輸入你的挑戰描述。</div>`;
+      return;
+    }
+    const matches = getLocalMatches(query, 12);
+    if (!matches.length) {
+      wrap.innerHTML = `<div class="empty-state" style="padding:24px 8px;">本機資料庫中沒有找到明顯相關的項目，可嘗試更換關鍵字，或至「工具箱資料庫」頁面直接瀏覽分類。</div>`;
+      return;
+    }
+    const maxScore = matches[0].score;
+    wrap.innerHTML =
+      `<div class="section-title" style="margin-bottom:2px;">資料庫比對結果（前 ${matches.length} 筆）</div>` +
+      `<div class="match-list">` +
+      matches
+        .map((m) => {
+          const pct = Math.max(8, Math.round((m.score / maxScore) * 100));
+          const sc = SUBCAT_MAP[m.tool.sub] || { color: "#888" };
+          return `<div class="card match-item">
+            <div class="match-score" style="background:${sc.color}22;color:${sc.color};">${pct}%</div>
+            <div class="match-body">
+              <div class="mn">${escapeHtml(m.tool.name)} <span style="color:var(--muted);font-weight:500;font-size:13px;">· ${m.tool.id}</span></div>
+              <div class="md">${escapeHtml(m.tool.desc)}</div>
+            </div>
+          </div>`;
+        })
+        .join("") +
+      `</div>`;
+  }
+
+  /* ============================================================
+     AI Assistant — bring-your-own-key, direct browser → provider
+     (Gemini / OpenAI / Anthropic). No server of ours is involved;
+     the API key and question go straight from this page to the
+     provider the user chooses.
+  ============================================================ */
+  const AI_PROVIDER_STORAGE_KEY = "nbs_ai_provider";
+  const AI_DEFAULT_MODELS = {
+    gemini: "gemini-3.8-flash",
+    openai: "gpt-4o-mini",
+    anthropic: "claude-3-5-haiku-latest",
+  };
+
+  // In-memory-only key storage, keyed by provider. A key is never written to
+  // localStorage unless the user explicitly checks "remember this key" —
+  // closing or refreshing the tab clears it by default.
+  const aiKeyMemory = {};
+
+  function aiKeyStorageKey(provider) {
+    return "nbs_ai_key_" + provider;
+  }
+  function aiRememberStorageKey(provider) {
+    return "nbs_ai_remember_" + provider;
+  }
+  function aiModelStorageKey(provider) {
+    return "nbs_ai_model_" + provider;
+  }
+
+  function buildToolboxContext() {
+    const legend = "A=環境友善指引、B=管理與評估、C=案例與干預、D=資料庫與工具箱";
+    const lines = TOOLS.map((t) => `${t.id}｜${t.name}｜${t.cat}/${t.sub}｜${truncate(t.desc, 70)}`);
+    return (
+      `你是協助流域自然解方（NbS）規劃的助理。以下是工具箱資料庫的清單摘要（共 ${TOOLS.length} 項，分類：${legend}），` +
+      `請僅根據這份清單內容回答使用者的規劃問題，優先推薦最相關的 2-5 項工具並說明理由；若清單中找不到合適的項目，請明確告知使用者。` +
+      `回答時請用工具的 id 與名稱標註出處，方便使用者回到「工具箱資料庫」頁面查詢。\n\n工具清單：\n` +
+      lines.join("\n")
+    );
+  }
+
+  function wireAIPanel() {
+    const providerSel = document.getElementById("aiProvider");
+    const keyInput = document.getElementById("aiApiKey");
+    const modelInput = document.getElementById("aiModel");
+    const rememberBox = document.getElementById("aiRememberKey");
+
+    const savedProvider = localStorage.getItem(AI_PROVIDER_STORAGE_KEY) || "gemini";
+    providerSel.value = savedProvider;
+    loadAIProviderFields(savedProvider);
+
+    providerSel.addEventListener("change", () => {
+      localStorage.setItem(AI_PROVIDER_STORAGE_KEY, providerSel.value);
+      loadAIProviderFields(providerSel.value);
+    });
+
+    keyInput.addEventListener("input", () => {
+      const provider = providerSel.value;
+      aiKeyMemory[provider] = keyInput.value.trim();
+      // Only touch localStorage if the user has opted in for this provider.
+      if (rememberBox.checked) {
+        localStorage.setItem(aiKeyStorageKey(provider), aiKeyMemory[provider]);
+      }
+    });
+
+    rememberBox.addEventListener("change", () => {
+      const provider = providerSel.value;
+      if (rememberBox.checked) {
+        localStorage.setItem(aiRememberStorageKey(provider), "1");
+        localStorage.setItem(aiKeyStorageKey(provider), keyInput.value.trim());
+      } else {
+        localStorage.removeItem(aiRememberStorageKey(provider));
+        localStorage.removeItem(aiKeyStorageKey(provider));
+      }
+    });
+
+    document.getElementById("btnForgetKey").addEventListener("click", () => {
+      Object.keys(localStorage)
+        .filter((k) => k.indexOf("nbs_ai_key_") === 0 || k.indexOf("nbs_ai_remember_") === 0)
+        .forEach((k) => localStorage.removeItem(k));
+      Object.keys(aiKeyMemory).forEach((k) => delete aiKeyMemory[k]);
+      keyInput.value = "";
+      rememberBox.checked = false;
+      showToast("已清除所有已儲存的金鑰");
+    });
+
+    modelInput.addEventListener("input", () => {
+      localStorage.setItem(aiModelStorageKey(providerSel.value), modelInput.value.trim());
+    });
+
+    document.getElementById("btnAskAI").addEventListener("click", runAIQuery);
+    document.getElementById("btnListModels").addEventListener("click", runListModels);
+  }
+
+  function loadAIProviderFields(provider) {
+    const remember = localStorage.getItem(aiRememberStorageKey(provider)) === "1";
+    const rememberBox = document.getElementById("aiRememberKey");
+    rememberBox.checked = remember;
+    const saved = remember ? (localStorage.getItem(aiKeyStorageKey(provider)) || "") : "";
+    document.getElementById("aiApiKey").value = provider in aiKeyMemory ? aiKeyMemory[provider] : saved;
+    document.getElementById("aiModel").value = localStorage.getItem(aiModelStorageKey(provider)) || "";
+    document.getElementById("aiModel").placeholder = "預設：" + AI_DEFAULT_MODELS[provider];
+  }
+
+  async function runAIQuery() {
+    const provider = document.getElementById("aiProvider").value;
+    const apiKey = document.getElementById("aiApiKey").value.trim();
+    const model = document.getElementById("aiModel").value.trim() || AI_DEFAULT_MODELS[provider];
+    const question = document.getElementById("aiQuestion").value.trim();
+    const wrap = document.getElementById("aiAnswerWrap");
+
+    if (!apiKey) {
+      wrap.innerHTML = `<div class="empty-state" style="padding:24px 8px;">請先貼上你選擇的 AI 服務的 API 金鑰。</div>`;
+      return;
+    }
+    if (!question) {
+      wrap.innerHTML = `<div class="empty-state" style="padding:24px 8px;">請先輸入你的問題。</div>`;
+      return;
+    }
+
+    const btn = document.getElementById("btnAskAI");
+    btn.disabled = true;
+    wrap.innerHTML = `<div class="empty-state" style="padding:24px 8px;">正在詢問 AI…</div>`;
+
+    try {
+      const context = buildToolboxContext();
+      const answer = await askAI(provider, apiKey, model, context, question);
+      wrap.innerHTML =
+        `<div class="section-title" style="margin-bottom:6px;">AI 回覆</div>` +
+        `<div class="card" style="padding:16px 18px; white-space:pre-wrap; line-height:1.75; font-size:14.5px;">${escapeHtml(answer)}</div>`;
+    } catch (e) {
+      console.error("AI query failed", e);
+      wrap.innerHTML = `<div class="empty-state" style="padding:24px 8px;">呼叫 AI 服務失敗：${escapeHtml(e.message || String(e))}（請確認金鑰正確、額度足夠，且該服務允許瀏覽器端直接呼叫）</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function askAI(provider, apiKey, model, systemText, question) {
+    if (provider === "gemini") return callGemini(apiKey, model, systemText, question);
+    if (provider === "openai") return callOpenAI(apiKey, model, systemText, question);
+    if (provider === "anthropic") return callAnthropic(apiKey, model, systemText, question);
+    throw new Error("未知的 AI 服務商");
+  }
+
+  async function callGemini(apiKey, model, systemText, question) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: question }] }],
+        systemInstruction: { parts: [{ text: systemText }] },
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error((data.error && data.error.message) || `Gemini API 錯誤（${res.status}）`);
+    const text =
+      data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts
+        ? data.candidates[0].content.parts.map((p) => p.text || "").join("")
+        : "";
+    if (!text) throw new Error("Gemini 沒有回傳內容");
+    return text;
+  }
+
+  async function callOpenAI(apiKey, model, systemText, question) {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + apiKey },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: systemText },
+          { role: "user", content: question },
+        ],
+        temperature: 0.4,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error((data.error && data.error.message) || `OpenAI API 錯誤（${res.status}）`);
+    const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    if (!text) throw new Error("OpenAI 沒有回傳內容");
+    return text;
+  }
+
+  async function callAnthropic(apiKey, model, systemText, question) {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1024,
+        system: systemText,
+        messages: [{ role: "user", content: question }],
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error((data.error && data.error.message) || `Anthropic API 錯誤（${res.status}）`);
+    const text = data.content && data.content[0] && data.content[0].text;
+    if (!text) throw new Error("Claude 沒有回傳內容");
+    return text;
+  }
+
+  /* ----------------------------------------------------------
+     List available models for the selected provider/key
+  ---------------------------------------------------------- */
+  async function runListModels() {
+    const provider = document.getElementById("aiProvider").value;
+    const apiKey = document.getElementById("aiApiKey").value.trim();
+    const wrap = document.getElementById("modelListWrap");
+
+    if (!apiKey) {
+      wrap.innerHTML = `<div class="empty-state" style="padding:14px 8px;">請先貼上 API 金鑰再查詢。</div>`;
+      return;
+    }
+
+    const btn = document.getElementById("btnListModels");
+    btn.disabled = true;
+    wrap.innerHTML = `<div class="empty-state" style="padding:14px 8px;">查詢中…</div>`;
+
+    try {
+      const models = await listModels(provider, apiKey);
+      if (!models.length) {
+        wrap.innerHTML = `<div class="empty-state" style="padding:14px 8px;">這把金鑰目前沒有查到可用的模型。</div>`;
+        return;
+      }
+      wrap.innerHTML =
+        `<div class="fhint" style="margin-bottom:6px;">點一下帶入下方「模型名稱」欄位：</div>` +
+        `<div style="display:flex; flex-wrap:wrap; gap:8px;">` +
+        models
+          .map(
+            (m) =>
+              `<button type="button" class="btn model-pick" data-model-id="${escapeHtml(m.id)}" style="font-size:13px; padding:7px 12px;">${escapeHtml(m.label)}</button>`
+          )
+          .join("") +
+        `</div>`;
+      wrap.querySelectorAll(".model-pick").forEach((b) => {
+        b.addEventListener("click", () => {
+          const modelInput = document.getElementById("aiModel");
+          modelInput.value = b.getAttribute("data-model-id");
+          localStorage.setItem(aiModelStorageKey(provider), modelInput.value);
+          showToast("已帶入模型：" + modelInput.value);
+        });
+      });
+    } catch (e) {
+      console.error("List models failed", e);
+      wrap.innerHTML = `<div class="empty-state" style="padding:14px 8px;">查詢失敗：${escapeHtml(e.message || String(e))}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function listModels(provider, apiKey) {
+    if (provider === "gemini") return listGeminiModels(apiKey);
+    if (provider === "openai") return listOpenAIModels(apiKey);
+    if (provider === "anthropic") return listAnthropicModels(apiKey);
+    throw new Error("未知的 AI 服務商");
+  }
+
+  async function listGeminiModels(apiKey) {
+    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models", {
+      headers: { "x-goog-api-key": apiKey },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error((data.error && data.error.message) || `Gemini API 錯誤（${res.status}）`);
+    return (data.models || [])
+      .filter((m) => !m.supportedGenerationMethods || m.supportedGenerationMethods.includes("generateContent"))
+      .map((m) => ({ id: (m.name || "").replace(/^models\//, ""), label: m.displayName || (m.name || "").replace(/^models\//, "") }));
+  }
+
+  async function listOpenAIModels(apiKey) {
+    const res = await fetch("https://api.openai.com/v1/models", {
+      headers: { Authorization: "Bearer " + apiKey },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error((data.error && data.error.message) || `OpenAI API 錯誤（${res.status}）`);
+    return (data.data || [])
+      .sort((a, b) => (b.created || 0) - (a.created || 0))
+      .map((m) => ({ id: m.id, label: m.id }));
+  }
+
+  async function listAnthropicModels(apiKey) {
+    const res = await fetch("https://api.anthropic.com/v1/models", {
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error((data.error && data.error.message) || `Anthropic API 錯誤（${res.status}）`);
+    return (data.data || []).map((m) => ({
+      id: m.id,
+      label: (m.display_name || m.id) + (m.lifecycle && m.lifecycle !== "active" ? ` · ${m.lifecycle}` : ""),
+    }));
+  }
+
+  /* ============================================================
+     Utilities
+  ============================================================ */
+  function escapeHtml(s) {
+    return String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+  function truncate(s, n) {
+    s = s || "";
+    return s.length > n ? s.slice(0, n) + "…" : s;
+  }
+
+  let toastTimer = null;
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+  }
+
+  // Custom confirm modal — replaces window.confirm(), which can be blocked or
+  // silently no-op inside a sandboxed iframe (e.g. Claude Artifacts) that
+  // does not grant allow-modals. Returns a Promise<boolean>.
+  let confirmResolver = null;
+  function showConfirm(message) {
+    return new Promise((resolve) => {
+      const overlay = document.getElementById("modalOverlay");
+      const msgEl = document.getElementById("modalMessage");
+      if (!overlay || !msgEl) {
+        // Fallback: no modal markup present for some reason — default to
+        // not proceeding rather than silently doing the destructive action.
+        resolve(false);
+        return;
+      }
+      msgEl.textContent = message;
+      confirmResolver = resolve;
+      overlay.classList.add("show");
+      const confirmBtn = document.getElementById("modalConfirmBtn");
+      if (confirmBtn) setTimeout(() => confirmBtn.focus(), 0);
+    });
+  }
+  function closeConfirm(result) {
+    const overlay = document.getElementById("modalOverlay");
+    if (overlay) overlay.classList.remove("show");
+    if (confirmResolver) {
+      const r = confirmResolver;
+      confirmResolver = null;
+      r(result);
+    }
+  }
+  function wireConfirmModal() {
+    const overlay = document.getElementById("modalOverlay");
+    const cancelBtn = document.getElementById("modalCancelBtn");
+    const confirmBtn = document.getElementById("modalConfirmBtn");
+    if (cancelBtn) cancelBtn.addEventListener("click", () => closeConfirm(false));
+    if (confirmBtn) confirmBtn.addEventListener("click", () => closeConfirm(true));
+    if (overlay) {
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) closeConfirm(false);
+      });
+    }
+    document.addEventListener("keydown", (e) => {
+      if (!confirmResolver) return;
+      if (e.key === "Escape") closeConfirm(false);
+      if (e.key === "Enter") closeConfirm(true);
+    });
+  }
+
+  // Export preview/fallback — see the comment above its markup for why this
+  // always opens on export rather than only when a download is detected to
+  // have failed (that can't be detected: a.click() on a sandboxed
+  // <a download> doesn't throw, it just silently does nothing). It renders
+  // inline right after the toolbar that triggered it (identified by
+  // `suffix`: "" for the flow page, "-p1"/"-p3" for the two simple
+  // profiles) rather than as a centered/fixed overlay, because a sandboxed
+  // embed (e.g. Wix) can render this page in an iframe far taller than the
+  // visible viewport — a fixed-position overlay can land off-screen, below
+  // where the visitor is currently scrolled, forcing an extra scroll to
+  // find it. Appearing right where they just clicked needs no scrolling.
+  function wireExportPreviewPanel(suffix) {
+    const closeBtn = document.getElementById("exportPreviewClose" + suffix);
+    if (closeBtn) closeBtn.addEventListener("click", () => closeExportPreview(suffix));
+  }
+  function closeExportPreview(suffix) {
+    const panel = document.getElementById("exportPreviewPanel" + suffix);
+    if (!panel) return;
+    panel.hidden = true;
+    const body = document.getElementById("exportPreviewBody" + suffix);
+    if (body) {
+      const img = body.querySelector("img");
+      if (img && img.src.startsWith("blob:")) URL.revokeObjectURL(img.src);
+      body.innerHTML = "";
+    }
+  }
+  function showExportPreview(filename, kind, content, suffix) {
+    suffix = suffix || "";
+    const panel = document.getElementById("exportPreviewPanel" + suffix);
+    const title = document.getElementById("exportPreviewTitle" + suffix);
+    const body = document.getElementById("exportPreviewBody" + suffix);
+    const hint = document.getElementById("exportPreviewHint" + suffix);
+    if (!panel || !body || !title || !hint) return;
+    title.textContent = "已產生：" + filename;
+    body.innerHTML = "";
+    if (kind === "image") {
+      const url = content instanceof Blob ? URL.createObjectURL(content) : content;
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = filename;
+      body.appendChild(img);
+      hint.textContent = "若瀏覽器沒有自動跳出下載，請長按（手機）或右鍵點擊（電腦）上方圖片，選擇「另存圖片」即可保存；此為嵌入頁面（例如 Wix）常見限制，並非資料遺失。";
+    } else {
+      const ta = document.createElement("textarea");
+      ta.readOnly = true;
+      ta.value = content;
+      body.appendChild(ta);
+      hint.textContent = "若瀏覽器沒有自動跳出下載，請點選上方文字框、Ctrl+A（Mac：⌘+A）全選、Ctrl+C（⌘+C）複製，貼到文字編輯器後另存為「" + filename + "」。";
+      setTimeout(() => {
+        ta.focus();
+        ta.select();
+      }, 50);
+    }
+    panel.hidden = false;
+    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  /* ============================================================
+     Icons
+  ============================================================ */
+  function iconHome() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+  function iconFlow() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5" cy="6" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="17" cy="12" r="2.2"/><path d="M7 6h6a4 4 0 014 4M7 18h6a4 4 0 004-4" stroke-linecap="round"/></svg>`;
+  }
+  function iconDb() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5.5" rx="7" ry="2.5"/><path d="M5 5.5V18c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V5.5M5 12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5" stroke-linecap="round"/></svg>`;
+  }
+  function iconMatch() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>`;
+  }
+  function iconAI() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z" stroke-linejoin="round"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z" stroke-linejoin="round"/></svg>`;
+  }
+  function iconProfile1() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="8" width="7" height="8" rx="1.6"/><rect x="14.5" y="8" width="7" height="8" rx="1.6"/><path d="M9.5 12h5" stroke-linecap="round"/><path d="M12.5 10l2 2-2 2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+  function iconProfile3() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16M4 5v13a1 1 0 001 1h9l6-6V5" stroke-linejoin="round"/><path d="M14 19v-5a1 1 0 011-1h5" stroke-linejoin="round"/><path d="M7.5 9.5h9M7.5 13h5" stroke-linecap="round"/></svg>`;
+  }
+})();
+
+</script>
+
+</body>
+</html>

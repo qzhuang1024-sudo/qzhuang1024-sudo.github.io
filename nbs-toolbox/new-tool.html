@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none';">
+<title>新工具箱 | NbS Toolbox</title>
+<meta name="description" content="自然解方工具箱的最新互動網頁版本，支援中文／English 雙語，提供規劃流程圖、案例簡表、工具資料庫與 AI 輔助查詢。">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg:#F1F6EF;
+    --surface:#FFFFFF;
+    --surface-2:#E7F0E4;
+    --ink:#1E2A22;
+    --ink-soft:#3A4A3E;
+    --muted:#5E6E62;
+    --line:#D8E3D4;
+    --line-strong:#C3D3BD;
+    --accent:#0E6B70;
+    --accent-ink:#083F42;
+    --accent-soft:#DCEDEB;
+    --orange:#C97A2E;
+    --orange-soft:#F6E6CE;
+    --blue:#45709C;
+    --blue-soft:#DEE7F2;
+    --green:#5C8A4C;
+    --green-soft:#E2EDDC;
+    --gray:#7C887E;
+    --gray-soft:#ECEFE9;
+    --shadow:0 1px 2px rgba(30,42,34,.06), 0 10px 28px -14px rgba(30,42,34,.22);
+    --radius:14px;
+    --serif:'Noto Serif TC','Songti TC',serif;
+    --sans:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:16.5px; line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:var(--serif); font-weight:600; color:var(--ink); margin:0; text-wrap:balance;}
+  p{margin:0;}
+  a{color:var(--accent);}
+  img{max-width:100%;}
+
+  .wrap{max-width:980px; margin:0 auto; padding:0 24px;}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:72px 0 56px; background:linear-gradient(180deg,var(--surface-2) 0%, var(--bg) 100%); border-bottom:1px solid var(--line);}
+  .eyebrow{
+    display:inline-block; font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.06em;
+    color:var(--accent-ink); background:var(--accent-soft); padding:5px 12px; border-radius:999px; margin-bottom:18px;
+  }
+  .hero h1{font-size:38px; line-height:1.2;}
+  .hero .en-sub{font-family:var(--mono); font-size:15px; color:var(--muted); margin-top:8px; letter-spacing:.02em;}
+  .hero .lede{font-size:17.5px; color:var(--ink-soft); max-width:62ch; margin-top:20px; line-height:1.8;}
+
+  .quote-block{
+    margin-top:28px; border-left:3px solid var(--accent); padding:16px 22px; background:var(--surface);
+    border-radius:0 10px 10px 0; box-shadow:var(--shadow); color:var(--ink-soft); font-size:15.5px; max-width:68ch;
+  }
+  .quote-block cite{display:block; margin-top:10px; font-size:13.5px; color:var(--muted); font-style:normal;}
+
+  /* ---------- Project origin ---------- */
+  .origin-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:32px 34px; margin-top:34px; border-top:4px solid var(--accent);
+  }
+  .origin-card h3{font-size:19.5px; line-height:1.5;}
+  .origin-meta{
+    font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--accent-ink); background:var(--accent-soft);
+    display:inline-block; padding:5px 11px; border-radius:999px; margin-bottom:14px;
+  }
+  .origin-card p{font-size:15.5px; color:var(--ink-soft); line-height:1.85; margin-top:14px;}
+  .origin-card p:first-of-type{margin-top:16px;}
+
+  .hero-actions{display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-top:30px;}
+  .btn-primary{
+    display:inline-flex; align-items:center; gap:8px; background:var(--accent); color:#fff; font-weight:700;
+    font-size:16px; padding:13px 24px; border-radius:10px; text-decoration:none; box-shadow:var(--shadow);
+  }
+  .btn-primary:hover{filter:brightness(1.07);}
+  .badge-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:22px;}
+  .badge{
+    font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--ink-soft); background:var(--surface);
+    border:1px solid var(--line-strong); padding:5px 11px; border-radius:999px;
+  }
+
+  /* ---------- Sections ---------- */
+  section{padding:56px 0;}
+  section.alt{background:var(--surface-2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .section-head{margin-bottom:30px; max-width:70ch;}
+  .section-head .tag{
+    font-family:var(--mono); font-size:12.5px; font-weight:700; letter-spacing:.08em; color:var(--accent);
+    text-transform:uppercase; display:block; margin-bottom:8px;
+  }
+  .section-head h2{font-size:26px;}
+  .section-head p{color:var(--muted); font-size:16px; margin-top:10px; line-height:1.75;}
+
+  /* ---------- Profile I diagram ---------- */
+  .p1-diagram{
+    display:flex; align-items:stretch; gap:16px; flex-wrap:wrap; margin-top:34px;
+  }
+  .p1-box{
+    flex:1; min-width:220px; background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:20px 22px; border-top:4px solid var(--orange);
+  }
+  .p1-box.blue{border-top-color:var(--blue);}
+  .p1-box .zh{font-size:17px; font-weight:700; color:var(--ink);}
+  .p1-box .en{font-family:var(--mono); font-size:12.5px; color:var(--muted); margin-top:3px;}
+  .p1-box .desc{font-size:14.5px; color:var(--ink-soft); margin-top:10px; line-height:1.7;}
+  .p1-arrow{
+    display:flex; align-items:center; justify-content:center; flex:none; width:40px; color:var(--line-strong);
+  }
+  .p1-arrow svg{width:28px;height:28px;}
+  .p1-sub{display:flex; flex-direction:column; gap:10px; margin-top:12px;}
+  .p1-chip{
+    font-size:13px; font-weight:600; background:var(--blue-soft); color:var(--accent-ink);
+    padding:6px 11px; border-radius:8px; display:inline-block;
+  }
+  .p1-chip.green{background:var(--green-soft);}
+
+  /* ---------- Original framework figures (from project PPT) ---------- */
+  .figure{
+    margin-top:34px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:20px 20px 16px; overflow-x:auto;
+  }
+  .figure img{display:block; width:100%; height:auto; min-width:640px;}
+  .figure-caption{font-size:13px; color:var(--muted); margin-top:12px; text-align:center;}
+  .figure-stack{display:flex; flex-direction:column; gap:28px;}
+  .figure-block .fb-head{margin-bottom:14px;}
+  .figure-block h3{font-size:18px;}
+  .figure-block .fb-head .en{font-family:var(--mono); font-size:12.5px; color:var(--muted); margin-top:2px; display:block;}
+  .figure-block p.fb-desc{font-size:14.5px; color:var(--ink-soft); margin-top:8px; line-height:1.8;}
+
+  /* ---------- Site nav ---------- */
+  .sitenav{position:sticky; top:0; z-index:40; background:rgba(255,255,255,.92); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  .sitenav-inner{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; flex-wrap:wrap; gap:10px;}
+  .sitenav-brand{font-family:var(--serif); font-weight:700; font-size:16px; color:var(--ink); text-decoration:none;}
+  .sitenav-links{display:flex; gap:4px; flex-wrap:wrap;}
+  .sitenav-links a{font-size:14px; font-weight:600; color:var(--ink-soft); text-decoration:none; padding:7px 13px; border-radius:999px;}
+  .sitenav-links a:hover{background:var(--surface-2);}
+  .sitenav-links a.active{background:var(--accent-soft); color:var(--accent-ink);}
+
+  /* ---------- Path cards (links to the two tool pages) ---------- */
+  .path-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-top:34px;}
+  .path-card{
+    display:block; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:26px 26px 24px; text-decoration:none; color:inherit;
+  }
+  .path-card:hover{border-color:var(--line-strong);}
+  .path-tag{
+    font-family:var(--mono); font-size:11.5px; font-weight:700; letter-spacing:.04em; padding:4px 10px;
+    border-radius:999px; display:inline-block; margin-bottom:12px;
+  }
+  .path-tag.new{background:var(--accent-soft); color:var(--accent-ink);}
+  .path-tag.old{background:var(--gray-soft); color:var(--ink-soft);}
+  .path-card h3{font-size:19px;}
+  .path-card p{font-size:14.5px; color:var(--muted); margin-top:8px; line-height:1.75;}
+  .path-go{font-size:14.5px; font-weight:700; color:var(--accent); margin-top:14px; display:inline-block;}
+
+  /* ---------- Feature cards ---------- */
+  .feature-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-top:34px;}
+  .feature-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:22px 24px;
+  }
+  .feature-card .ic{
+    width:38px;height:38px; border-radius:10px; background:var(--accent-soft); color:var(--accent-ink);
+    display:flex; align-items:center; justify-content:center; margin-bottom:14px;
+  }
+  .feature-card .ic svg{width:20px;height:20px;}
+  .feature-card h3{font-size:17px; margin-bottom:8px;}
+  .feature-card p{font-size:14.5px; color:var(--muted); line-height:1.75;}
+
+  /* ---------- Stepper ---------- */
+  .stepper{display:flex; flex-direction:column; gap:14px; margin-top:34px;}
+  .step{
+    display:flex; gap:18px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:20px 24px; align-items:flex-start;
+  }
+  .step .n{
+    flex:none; width:40px;height:40px; border-radius:999px; color:#fff; font-family:var(--mono); font-weight:700;
+    font-size:15px; display:flex; align-items:center; justify-content:center;
+  }
+  .step.s1 .n{background:var(--gray);}
+  .step.s2 .n{background:var(--orange);}
+  .step.s3 .n{background:var(--blue);}
+  .step.s4 .n{background:var(--gray);}
+  .step.s5 .n{background:var(--green);}
+  .step .body h4{font-size:16.5px; margin-bottom:5px;}
+  .step .body .en{font-family:var(--mono); font-size:12px; color:var(--muted); margin-bottom:6px; display:block;}
+  .step .body p{font-size:14.5px; color:var(--ink-soft); line-height:1.75;}
+  .loop-note{
+    display:flex; align-items:flex-start; gap:10px; font-size:13.5px; color:var(--muted); margin-top:4px;
+    padding:12px 16px; background:var(--surface); border:1px dashed var(--line-strong); border-radius:10px;
+  }
+  .loop-note svg{width:16px;height:16px; color:var(--accent); flex:none; margin-top:2px;}
+
+  /* ---------- Closing CTA ---------- */
+  .cta-block{
+    text-align:center; background:var(--accent); color:#fff; border-radius:20px; padding:54px 34px;
+    margin-top:0;
+  }
+  .cta-block h2{color:#fff; font-size:26px;}
+  .cta-block p{color:var(--accent-soft); font-size:16px; max-width:52ch; margin:14px auto 0; line-height:1.8;}
+  .cta-block .btn-primary{background:#fff; color:var(--accent-ink); margin-top:26px;}
+
+  footer.page-foot{
+    padding:40px 0 60px; font-size:13.5px; color:var(--muted); text-align:center; line-height:1.8;
+  }
+  footer.page-foot a{color:var(--accent-ink);}
+
+  @media (max-width:720px){
+    .hero{padding:52px 0 40px;}
+    .hero h1{font-size:30px;}
+    .feature-grid{grid-template-columns:1fr;}
+    .p1-diagram{flex-direction:column;}
+    .p1-arrow{width:100%; height:30px;}
+    .p1-arrow svg{transform:rotate(90deg);}
+    .step{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="sitenav">
+  <div class="wrap sitenav-inner">
+    <a class="sitenav-brand" href="index.html">自然解方工具箱</a>
+    <div class="sitenav-links">
+      <a href="index.html">貢獻與設計理念</a>
+      <a href="new-tool.html" class="active">新工具箱</a>
+      <a href="old-tool.html">舊工具箱</a>
+      <a href="../index.html" lang="en">← Qun-Zhan Huang</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="wrap">
+    <span class="eyebrow">最新版・互動網頁應用</span>
+    <h1>新工具箱</h1>
+    <div class="en-sub">NbS Toolbox — Interactive Web App</div>
+    <p class="lede">把「自然解方簡表(一)(二)(三)」與「NbS 導入流程」做成可以直接線上填寫的互動網頁：規劃流程圖、案例簡表、工具資料庫、AI 輔助查詢整合在同一個頁面，不用安裝軟體、打開瀏覽器就能使用，支援中文／English 雙語版本。</p>
+
+    <div class="badge-row">
+      <span class="badge">中文 / English 雙語版</span>
+      <span class="badge">免安裝・瀏覽器內執行</span>
+      <span class="badge">資料留在本機・不上傳伺服器</span>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">Inside the Toolbox</span>
+      <h2>工具箱裡面有什麼</h2>
+      <p>四個互動工具整合在同一個頁面，從概念發想、詳細規劃到查詢比對，涵蓋 NbS 案例從發想到對外分享的完整流程。</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h4m4 0h4m4 0h0" stroke-linecap="round"/><circle cx="4" cy="12" r="2.4"/><circle cx="12" cy="12" r="2.4"/><circle cx="20" cy="12" r="2.4"/></svg>
+        </div>
+        <h3>解方規劃流程圖</h3>
+        <p>五階段 NbS 導入流程，搭配「自然解方簡表(二)」規劃要素圖，直接在線上填入你的專案內容，並匯出成圖片保存。</p>
+      </div>
+      <div class="feature-card">
+        <div class="ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round"/></svg>
+        </div>
+        <h3>自然解方簡表(一)(三)</h3>
+        <p>一頁式的案例摘要工具：簡表(一)用於概念說明、簡表(三)用於對外成果分享，幾分鐘就能完成一份精簡版本。</p>
+      </div>
+      <div class="feature-card">
+        <div class="ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 10v10" stroke-linecap="round"/></svg>
+        </div>
+        <h3>工具箱資料庫</h3>
+        <p>131 項國際指引、指標模式、決策支援工具、干預手段與案例文獻，可依分類、關鍵字與標籤查詢——取代了舊版需要開啟 Excel 巨集才能查詢的工具索引。</p>
+      </div>
+      <div class="feature-card">
+        <div class="ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke-linecap="round"/><circle cx="12" cy="12" r="4"/></svg>
+        </div>
+        <h3>AI 相似解方查詢</h3>
+        <p>先在本機資料庫比對相近案例，也可以選用你自己的 AI 金鑰，以 IUCN NbS 標準為依歸做延伸分析。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="launch">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">Launch</span>
+      <h2>選擇語言版本開始使用</h2>
+      <p>兩個版本的內容與功能完全相同，差別只在介面語言，選一個你習慣的版本即可：</p>
+    </div>
+    <div class="path-grid">
+      <a class="path-card" href="tools/nbs-toolbox-zh.html" target="_blank" rel="noopener">
+        <span class="path-tag new">中文版</span>
+        <h3>自然解方工具箱</h3>
+        <p>介面與說明文字皆為繁體中文，適合課堂教學、國內計畫報告與對內溝通使用。</p>
+        <span class="path-go">開啟中文版 ↗</span>
+      </a>
+      <a class="path-card" href="tools/nbs-toolbox-en.html" target="_blank" rel="noopener">
+        <span class="path-tag new">English</span>
+        <h3>NbS Toolbox</h3>
+        <p>Full English interface, suitable for international collaboration, papers, and presentations.</p>
+        <span class="path-go">Open English Version ↗</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">More</span>
+      <h2>繼續了解</h2>
+    </div>
+    <div class="path-grid">
+      <a class="path-card" href="index.html">
+        <span class="path-tag old">背景</span>
+        <h3>貢獻與設計理念</h3>
+        <p>這套工具背後的規劃框架與研究動機，以及我設計的三份 NbS 展示模板。</p>
+        <span class="path-go">查看設計理念 →</span>
+      </a>
+      <a class="path-card" href="old-tool.html">
+        <span class="path-tag old">原始版</span>
+        <h3>舊工具箱</h3>
+        <p>計畫最初以 Excel／VBA 巨集建立的工具索引查詢介面。</p>
+        <span class="path-go">前往舊工具箱 →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer class="page-foot">
+  <div class="wrap">
+    資料來源：本計畫《自然解方工具箱說明與使用》(2024/12)、工具箱清單、NbS 展示模板（簡表一～三）。工具箱內容持續更新 (如果有給我錢的話)，若有疑義請以原始文獻與工具來源為準。
+    <br>本網頁之設計、文案整理與互動工具開發，在 Claude AI 協助下完成。
+  </div>
+</footer>
+
+</body>
+</html>

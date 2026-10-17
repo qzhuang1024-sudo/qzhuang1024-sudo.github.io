@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none';">
+<title>自然解方工具箱 | Nature-based Solutions Toolbox</title>
+<meta name="description" content="自然解方工具箱（NbS Toolbox）：把國際自然解方規劃框架做成的互動網頁工具，支援線上填寫、資料庫查詢與 AI 輔助查詢。">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg:#F1F6EF;
+    --surface:#FFFFFF;
+    --surface-2:#E7F0E4;
+    --ink:#1E2A22;
+    --ink-soft:#3A4A3E;
+    --muted:#5E6E62;
+    --line:#D8E3D4;
+    --line-strong:#C3D3BD;
+    --accent:#0E6B70;
+    --accent-ink:#083F42;
+    --accent-soft:#DCEDEB;
+    --orange:#C97A2E;
+    --orange-soft:#F6E6CE;
+    --blue:#45709C;
+    --blue-soft:#DEE7F2;
+    --green:#5C8A4C;
+    --green-soft:#E2EDDC;
+    --gray:#7C887E;
+    --gray-soft:#ECEFE9;
+    --shadow:0 1px 2px rgba(30,42,34,.06), 0 10px 28px -14px rgba(30,42,34,.22);
+    --radius:14px;
+    --serif:'Noto Serif TC','Songti TC',serif;
+    --sans:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:16.5px; line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:var(--serif); font-weight:600; color:var(--ink); margin:0; text-wrap:balance;}
+  p{margin:0;}
+  a{color:var(--accent);}
+  img{max-width:100%;}
+
+  .wrap{max-width:980px; margin:0 auto; padding:0 24px;}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:72px 0 56px; background:linear-gradient(180deg,var(--surface-2) 0%, var(--bg) 100%); border-bottom:1px solid var(--line);}
+  .eyebrow{
+    display:inline-block; font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.06em;
+    color:var(--accent-ink); background:var(--accent-soft); padding:5px 12px; border-radius:999px; margin-bottom:18px;
+  }
+  .hero h1{font-size:38px; line-height:1.2;}
+  .hero .en-sub{font-family:var(--mono); font-size:15px; color:var(--muted); margin-top:8px; letter-spacing:.02em;}
+  .hero .lede{font-size:17.5px; color:var(--ink-soft); max-width:62ch; margin-top:20px; line-height:1.8;}
+
+  .quote-block{
+    margin-top:28px; border-left:3px solid var(--accent); padding:16px 22px; background:var(--surface);
+    border-radius:0 10px 10px 0; box-shadow:var(--shadow); color:var(--ink-soft); font-size:15.5px; max-width:68ch;
+  }
+  .quote-block cite{display:block; margin-top:10px; font-size:13.5px; color:var(--muted); font-style:normal;}
+
+  /* ---------- Project origin ---------- */
+  .origin-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:32px 34px; margin-top:34px; border-top:4px solid var(--accent);
+  }
+  .origin-card h3{font-size:19.5px; line-height:1.5;}
+  .origin-meta{
+    font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--accent-ink); background:var(--accent-soft);
+    display:inline-block; padding:5px 11px; border-radius:999px; margin-bottom:14px;
+  }
+  .origin-card p{font-size:15.5px; color:var(--ink-soft); line-height:1.85; margin-top:14px;}
+  .origin-card p:first-of-type{margin-top:16px;}
+
+  .hero-actions{display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-top:30px;}
+  .btn-primary{
+    display:inline-flex; align-items:center; gap:8px; background:var(--accent); color:#fff; font-weight:700;
+    font-size:16px; padding:13px 24px; border-radius:10px; text-decoration:none; box-shadow:var(--shadow);
+  }
+  .btn-primary:hover{filter:brightness(1.07);}
+  .badge-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:22px;}
+  .badge{
+    font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--ink-soft); background:var(--surface);
+    border:1px solid var(--line-strong); padding:5px 11px; border-radius:999px;
+  }
+
+  /* ---------- Sections ---------- */
+  section{padding:56px 0;}
+  section.alt{background:var(--surface-2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .section-head{margin-bottom:30px; max-width:70ch;}
+  .section-head .tag{
+    font-family:var(--mono); font-size:12.5px; font-weight:700; letter-spacing:.08em; color:var(--accent);
+    text-transform:uppercase; display:block; margin-bottom:8px;
+  }
+  .section-head h2{font-size:26px;}
+  .section-head p{color:var(--muted); font-size:16px; margin-top:10px; line-height:1.75;}
+
+  /* ---------- Profile I diagram ---------- */
+  .p1-diagram{
+    display:flex; align-items:stretch; gap:16px; flex-wrap:wrap; margin-top:34px;
+  }
+  .p1-box{
+    flex:1; min-width:220px; background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:20px 22px; border-top:4px solid var(--orange);
+  }
+  .p1-box.blue{border-top-color:var(--blue);}
+  .p1-box .zh{font-size:17px; font-weight:700; color:var(--ink);}
+  .p1-box .en{font-family:var(--mono); font-size:12.5px; color:var(--muted); margin-top:3px;}
+  .p1-box .desc{font-size:14.5px; color:var(--ink-soft); margin-top:10px; line-height:1.7;}
+  .p1-arrow{
+    display:flex; align-items:center; justify-content:center; flex:none; width:40px; color:var(--line-strong);
+  }
+  .p1-arrow svg{width:28px;height:28px;}
+  .p1-sub{display:flex; flex-direction:column; gap:10px; margin-top:12px;}
+  .p1-chip{
+    font-size:13px; font-weight:600; background:var(--blue-soft); color:var(--accent-ink);
+    padding:6px 11px; border-radius:8px; display:inline-block;
+  }
+  .p1-chip.green{background:var(--green-soft);}
+
+  /* ---------- Original framework figures (from project PPT) ---------- */
+  .figure{
+    margin-top:34px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:20px 20px 16px; overflow-x:auto;
+  }
+  .figure img{display:block; width:100%; height:auto; min-width:640px;}
+  .figure-caption{font-size:13px; color:var(--muted); margin-top:12px; text-align:center;}
+  .figure-stack{display:flex; flex-direction:column; gap:28px;}
+  .figure-block .fb-head{margin-bottom:14px;}
+  .figure-block h3{font-size:18px;}
+  .figure-block .fb-head .en{font-family:var(--mono); font-size:12.5px; color:var(--muted); margin-top:2px; display:block;}
+  .figure-block p.fb-desc{font-size:14.5px; color:var(--ink-soft); margin-top:8px; line-height:1.8;}
+
+  .variant-toggle{
+    display:inline-flex; gap:4px; padding:4px; background:var(--surface); border:1px solid var(--line);
+    border-radius:999px; box-shadow:var(--shadow); margin-top:18px;
+  }
+  .variant-toggle button{
+    font-family:var(--sans); font-size:13.5px; font-weight:600; color:var(--ink-soft); background:transparent;
+    border:none; padding:8px 18px; border-radius:999px; cursor:pointer; transition:background .15s, color .15s;
+  }
+  .variant-toggle button.active{ background:var(--accent); color:#fff; }
+  .variant-toggle button:hover:not(.active){ background:var(--accent-soft); }
+  .figure img[hidden]{display:none;}
+  .toggle-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:18px;}
+  .toggle-row .variant-toggle{margin-top:0;}
+
+  /* ---------- Site nav ---------- */
+  .sitenav{position:sticky; top:0; z-index:40; background:rgba(255,255,255,.92); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  .sitenav-inner{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; flex-wrap:wrap; gap:10px;}
+  .sitenav-brand{font-family:var(--serif); font-weight:700; font-size:16px; color:var(--ink); text-decoration:none;}
+  .sitenav-links{display:flex; gap:4px; flex-wrap:wrap;}
+  .sitenav-links a{font-size:14px; font-weight:600; color:var(--ink-soft); text-decoration:none; padding:7px 13px; border-radius:999px;}
+  .sitenav-links a:hover{background:var(--surface-2);}
+  .sitenav-links a.active{background:var(--accent-soft); color:var(--accent-ink);}
+
+  /* ---------- Path cards (links to the two tool pages) ---------- */
+  .path-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-top:34px;}
+  .path-card{
+    display:block; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:26px 26px 24px; text-decoration:none; color:inherit;
+  }
+  .path-card:hover{border-color:var(--line-strong);}
+  .path-tag{
+    font-family:var(--mono); font-size:11.5px; font-weight:700; letter-spacing:.04em; padding:4px 10px;
+    border-radius:999px; display:inline-block; margin-bottom:12px;
+  }
+  .path-tag.new{background:var(--accent-soft); color:var(--accent-ink);}
+  .path-tag.old{background:var(--gray-soft); color:var(--ink-soft);}
+  .path-card h3{font-size:19px;}
+  .path-card p{font-size:14.5px; color:var(--muted); margin-top:8px; line-height:1.75;}
+  .path-go{font-size:14.5px; font-weight:700; color:var(--accent); margin-top:14px; display:inline-block;}
+
+  /* ---------- Feature cards ---------- */
+  .feature-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-top:34px;}
+  .feature-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:22px 24px;
+  }
+  .feature-card .ic{
+    width:38px;height:38px; border-radius:10px; background:var(--accent-soft); color:var(--accent-ink);
+    display:flex; align-items:center; justify-content:center; margin-bottom:14px;
+  }
+  .feature-card .ic svg{width:20px;height:20px;}
+  .feature-card h3{font-size:17px; margin-bottom:8px;}
+  .feature-card p{font-size:14.5px; color:var(--muted); line-height:1.75;}
+
+  /* ---------- Stepper ---------- */
+  .stepper{display:flex; flex-direction:column; gap:14px; margin-top:34px;}
+  .step{
+    display:flex; gap:18px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:20px 24px; align-items:flex-start;
+  }
+  .step .n{
+    flex:none; width:40px;height:40px; border-radius:999px; color:#fff; font-family:var(--mono); font-weight:700;
+    font-size:15px; display:flex; align-items:center; justify-content:center;
+  }
+  .step.s1 .n{background:var(--gray);}
+  .step.s2 .n{background:var(--orange);}
+  .step.s3 .n{background:var(--blue);}
+  .step.s4 .n{background:var(--gray);}
+  .step.s5 .n{background:var(--green);}
+  .step .body h4{font-size:16.5px; margin-bottom:5px;}
+  .step .body .en{font-family:var(--mono); font-size:12px; color:var(--muted); margin-bottom:6px; display:block;}
+  .step .body p{font-size:14.5px; color:var(--ink-soft); line-height:1.75;}
+  .loop-note{
+    display:flex; align-items:flex-start; gap:10px; font-size:13.5px; color:var(--muted); margin-top:4px;
+    padding:12px 16px; background:var(--surface); border:1px dashed var(--line-strong); border-radius:10px;
+  }
+  .loop-note svg{width:16px;height:16px; color:var(--accent); flex:none; margin-top:2px;}
+
+  /* ---------- Closing CTA ---------- */
+  .cta-block{
+    text-align:center; background:var(--accent); color:#fff; border-radius:20px; padding:54px 34px;
+    margin-top:0;
+  }
+  .cta-block h2{color:#fff; font-size:26px;}
+  .cta-block p{color:var(--accent-soft); font-size:16px; max-width:52ch; margin:14px auto 0; line-height:1.8;}
+  .cta-block .btn-primary{background:#fff; color:var(--accent-ink); margin-top:26px;}
+
+  footer.page-foot{
+    padding:40px 0 60px; font-size:13.5px; color:var(--muted); text-align:center; line-height:1.8;
+  }
+  footer.page-foot a{color:var(--accent-ink);}
+
+  @media (max-width:720px){
+    .hero{padding:52px 0 40px;}
+    .hero h1{font-size:30px;}
+    .feature-grid{grid-template-columns:1fr;}
+    .p1-diagram{flex-direction:column;}
+    .p1-arrow{width:100%; height:30px;}
+    .p1-arrow svg{transform:rotate(90deg);}
+    .step{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="sitenav">
+  <div class="wrap sitenav-inner">
+    <a class="sitenav-brand" href="index.html">自然解方工具箱</a>
+    <div class="sitenav-links">
+      <a href="index.html" class="active">貢獻與設計理念</a>
+      <a href="new-tool.html">新工具箱</a>
+      <a href="old-tool.html">舊工具箱</a>
+      <a href="../index.html" lang="en">← Qun-Zhan Huang</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="wrap">
+    <span class="eyebrow">研究計畫成果・自然解方規劃工具</span>
+    <h1>自然解方工具箱</h1>
+    <div class="en-sub">Nature-based Solutions (NbS) Toolbox</div>
+    <p class="lede">一系列流程圖與決策架構，整合 IUCN 指引、工程規劃程序及計畫管理流程，建立可供決策者與規劃者依循的 NbS 規劃工具，協助規劃成果符合國際 NbS 標準並提升實際應用可行性。</p>
+
+    <div class="hero-actions">
+      <a class="btn-primary" href="new-tool.html">
+        立即使用工具箱 ↗
+      </a>
+    </div>
+    <div class="badge-row">
+      <span class="badge">中文 / English 雙語版</span>
+      <span class="badge">免安裝・瀏覽器內執行</span>
+      <span class="badge">資料留在本機・不上傳伺服器</span>
+    </div>
+  </div>
+</div>
+
+<section id="project-origin">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">Project Background</span>
+      <h2>計畫緣起</h2>
+    </div>
+    <div class="origin-card">
+      <div class="origin-meta">2024・水規分署計畫</div>
+      <h3>《建立流域自然解方規劃方法與實務案例》</h3>
+      <p>《建立流域自然解方規劃方法與實務案例》是由國立臺灣大學生物環境系統工程學系<a href="https://www.bse.ntu.edu.tw/member/teacher/lchiang" target="_blank" rel="noopener">江莉琦教授</a>主持的經濟部水利署水利規劃分署計畫（委辦計畫編號：<a href="https://web.wra.gov.tw/wralib/WraLib/wSite/books_96442" target="_blank" rel="noopener">MOEAWRA113204</a>），旨在將「以自然為本的解決方案」（Nature-based Solutions, NbS）導入臺灣的流域水利治理中。許少瑜教授、廖國偉教授也參與在本計畫。</p>
+
+      <div class="quote-block" style="margin-top:20px;">
+        以自然為本的解決方案（自然解方）國際自然保護聯盟（IUCN）定義為：藉由保護、永續管理與恢復自然，以及改變生態系的行動，這些行動有效地、適應性地應對社會挑戰、並提供人類福祉與生物多樣性裨益。
+        <br><br>
+        “NbS are defined by the International Union for Conservation of Nature (IUCN) as actions to protect, sustainably manage, and restore natural or modified ecosystems, that address societal challenges effectively and adaptively, simultaneously providing human well-being and biodiversity benefits.”
+        <cite>Cohen-Shacham, E., Walters, G., Janzen, C., &amp; Maginnis, S. (2016). Nature-based solutions to address global societal challenges. IUCN: Gland, Switzerland.</cite>
+      </div>
+
+      <p>本計畫旨在將國際推動的 NbS 概念導入臺灣流域治理與工程規劃實務。然而，在實際規劃過程中，首先面臨的問題是：什麼樣的解方可以宣稱是 NbS？IUCN 建立了一套指引工具，協助規劃者評估解方是否符合 NbS 概念，然而該指引工具與實際工程規劃流程之間存在落差，規劃人員往往缺乏一套兼顧工程規劃需求與 NbS 原則的操作架構。</p>
+      <p>為弭補此缺口，許少瑜團隊中的我（黃群展，博士候選人）回顧了流域 NbS 相關文獻、國內外案例、IUCN NbS 自我評估指標，以及既有工程規劃與計畫執行流程；衡量各階段決策需求，將 IUCN 的 NbS 指引工具融入實務可操作的規劃步驟中。</p>
+      <p>具體來說，我設計了一系列流程圖與決策架構，整合 IUCN 指引、工程規劃程序及計畫管理流程，建立可供決策者與規劃者依循的 NbS 規劃工具，協助規劃成果符合國際 NbS 標準並提升實際應用可行性。</p>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="profiles">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">About NbS</span>
+      <h2>自然解方：三種展示模板</h2>
+      <p>自然解方（NbS）是透過保護、永續管理、恢復自然，或改變生態系的方式，有效且因地制宜地回應社會挑戰，同時創造人類福祉與生物多樣性效益的規劃取徑。NbS 展示模板的目的是對外展示，以便有效率地說明何謂 NbS，並呈現專案與 IUCN NbS 標準的呼應——這是我在這個計畫中設計的三份模板，後來也成為工具箱裡「自然解方簡表(一)(二)(三)」的原型。</p>
+
+      <div class="toggle-row">
+        <div class="variant-toggle" id="profileVariantToggle" role="group" aria-label="模板版本切換">
+          <button type="button" class="active" data-variant="annotated">有文字說明</button>
+          <button type="button" data-variant="blank">空白模板</button>
+        </div>
+        <div class="variant-toggle" id="profileLangToggle" role="group" aria-label="模板語言切換">
+          <button type="button" class="active" data-lang="zh">中文</button>
+          <button type="button" data-lang="en">English</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="figure-stack">
+      <div class="figure-block">
+        <div class="fb-head">
+          <h3>自然解方簡表(一)</h3>
+          <span class="en">NbS Profile I</span>
+        </div>
+        <p class="fb-desc">用於簡介應用之 NbS 如何「藉由保護、永續管理、恢復自然以及改變生態系解決社會挑戰、提供人類福祉與生物多樣性裨益」。</p>
+        <div class="figure">
+          <img class="variant-img" data-variant="annotated" data-lang="zh" src="images/profile1-annotated.png" alt="NbS Profile I 設計圖（含文字說明）：社會挑戰透過干預手段，產生人類福祉與生態系效益">
+          <img class="variant-img" data-variant="blank" data-lang="zh" src="images/profile1-blank.png" alt="NbS Profile I 空白模板：社會挑戰透過干預手段，產生人類福祉與生態系效益" hidden>
+          <img class="variant-img" data-variant="annotated" data-lang="en" src="images/profile1-annotated-en.png" alt="NbS Profile I diagram (annotated, English)" hidden>
+          <img class="variant-img" data-variant="blank" data-lang="en" src="images/profile1-blank-en.png" alt="NbS Profile I blank template (English)" hidden>
+        </div>
+      </div>
+
+      <div class="figure-block">
+        <div class="fb-head">
+          <h3>自然解方簡表(二)</h3>
+          <span class="en">NbS Profile II</span>
+        </div>
+        <p class="fb-desc">涵蓋了自然解方規劃與執行的關鍵元素，呼應 IUCN 的 NbS 評估標準。本模板由規劃者角度設計，以利發想與設計 NbS、盤點考量事項，以及對外介紹。考量工具箱使用者——水文／水利專家——熟悉水文／水理模式，特將部分格子與模擬模式類比。</p>
+        <div class="figure">
+          <img class="variant-img" data-variant="annotated" data-lang="zh" src="images/profile2-annotated.png" alt="NbS Profile II 設計圖（含文字說明）：社會挑戰、介入手段、後果與調適管理的完整規劃架構">
+          <img class="variant-img" data-variant="blank" data-lang="zh" src="images/profile2-blank.png" alt="NbS Profile II 空白模板：社會挑戰、介入手段、後果與調適管理的完整規劃架構" hidden>
+          <img class="variant-img" data-variant="annotated" data-lang="en" src="images/profile2-annotated-en.png" alt="NbS Profile II diagram (annotated, English)" hidden>
+          <img class="variant-img" data-variant="blank" data-lang="en" src="images/profile2-blank-en.png" alt="NbS Profile II blank template (English)" hidden>
+        </div>
+      </div>
+
+      <div class="figure-block">
+        <div class="fb-head">
+          <h3>自然解方簡表(三)</h3>
+          <span class="en">NbS Profile III</span>
+        </div>
+        <p class="fb-desc">僅用於對一般民眾介紹 NbS 施作成果。</p>
+        <div class="figure">
+          <img class="variant-img" data-variant="annotated" data-lang="zh" src="images/profile3-annotated.png" alt="NbS Profile III 設計圖（含文字說明）：挑戰、行動、結果與經驗教訓">
+          <img class="variant-img" data-variant="blank" data-lang="zh" src="images/profile3-blank.png" alt="NbS Profile III 空白模板：挑戰、行動、結果與經驗教訓" hidden>
+          <img class="variant-img" data-variant="annotated" data-lang="en" src="images/profile3-annotated-en.png" alt="NbS Profile III diagram (English)" hidden>
+          <img class="variant-img" data-variant="blank" data-lang="en" src="images/profile3-blank-en.png" alt="NbS Profile III diagram (English)" hidden>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="process">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">How It Works</span>
+      <h2>NbS 導入流程：規劃流程一次看懂</h2>
+      <p>「NbS 導入流程」引導執行團隊規劃與執行流域治理過程，搭配「自然解方簡表(二)」呼應 IUCN 的 NbS 評估標準，並對應工具箱中的工具索引。依照流程圖的五個階段逐步進行專案設計與執行：</p>
+
+      <div class="variant-toggle" id="processLangToggle" role="group" aria-label="流程圖語言切換">
+        <button type="button" class="active" data-lang="zh">中文</button>
+        <button type="button" data-lang="en">English</button>
+      </div>
+    </div>
+
+    <div class="figure">
+      <img class="process-img" data-lang="zh" src="images/process5-zh.png" alt="NbS 導入流程原始設計圖：專案啟動、了解系統、行動方案擬定、確認與執行、監測與評估五個階段">
+      <img class="process-img" data-lang="en" src="images/process5.png" alt="NbS Introduction Process diagram: project initiation, system understanding, action design, confirmation and execution, monitoring and evaluation" hidden>
+      <p class="figure-caption">NbS 導入流程｜NbS Introduction Process（原始設計圖）</p>
+    </div>
+
+    <div class="loop-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3M15 4v3h-3M9 20v-3h3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>設計過程中若發現概念模型不足或需要修正，可以回到「了解系統」精進概念模式與因子盤點——這是流程圖裡特別標出的迴圈設計，也是工具箱頁面裡「迴圈提示」的由來。</span>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">From Framework to Tool</span>
+      <h2>從規劃框架到兩個版本的工具</h2>
+      <p>這套框架後來發展成兩個版本的線上工具，可以依照你的需求選擇使用：</p>
+    </div>
+    <div class="path-grid">
+      <a class="path-card" href="new-tool.html">
+        <span class="path-tag new">最新版・中文／English</span>
+        <h3>新工具箱</h3>
+        <p>互動式規劃流程圖、簡表線上填寫、資料庫查詢與 AI 輔助比對，整合在同一個網頁應用裡，支援中文／English 雙語。</p>
+        <span class="path-go">前往新工具箱 →</span>
+      </a>
+      <a class="path-card" href="old-tool.html">
+        <span class="path-tag old">原始版・Excel／工具索引</span>
+        <h3>舊工具箱</h3>
+        <p>計畫最初以 Excel／VBA 巨集建立的工具索引查詢介面，收錄 131 項工具的分類與說明，是新工具箱「工具箱資料庫」功能的前身。</p>
+        <span class="path-go">前往舊工具箱 →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer class="page-foot">
+  <div class="wrap">
+    資料來源：本計畫《自然解方工具箱說明與使用》(2024/12)、工具箱清單、NbS 展示模板（簡表一～三）。工具箱內容持續更新 (如果有給我錢的話)，若有疑義請以原始文獻與工具來源為準。
+    <br>本網頁之設計、文案整理與互動工具開發，在 Claude AI 協助下完成。
+  </div>
+</footer>
+
+<script>
+  (function () {
+    // --- Profiles section: variant x lang combined toggle ---
+    var variantToggle = document.getElementById("profileVariantToggle");
+    var langToggle = document.getElementById("profileLangToggle");
+    var profileState = { variant: "annotated", lang: "zh" };
+
+    function applyProfileImages() {
+      document.querySelectorAll(".variant-img").forEach(function (img) {
+        var match = img.getAttribute("data-variant") === profileState.variant &&
+          img.getAttribute("data-lang") === profileState.lang;
+        if (match) {
+          img.removeAttribute("hidden");
+        } else {
+          img.setAttribute("hidden", "");
+        }
+      });
+    }
+
+    if (variantToggle) {
+      variantToggle.addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-variant]");
+        if (!btn) return;
+        profileState.variant = btn.getAttribute("data-variant");
+        variantToggle.querySelectorAll("button").forEach(function (b) {
+          b.classList.toggle("active", b === btn);
+        });
+        applyProfileImages();
+      });
+    }
+
+    if (langToggle) {
+      langToggle.addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-lang]");
+        if (!btn) return;
+        profileState.lang = btn.getAttribute("data-lang");
+        langToggle.querySelectorAll("button").forEach(function (b) {
+          b.classList.toggle("active", b === btn);
+        });
+        applyProfileImages();
+      });
+    }
+
+    // --- Process section: independent lang-only toggle ---
+    var processToggle = document.getElementById("processLangToggle");
+    if (processToggle) {
+      processToggle.addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-lang]");
+        if (!btn) return;
+        var lang = btn.getAttribute("data-lang");
+        processToggle.querySelectorAll("button").forEach(function (b) {
+          b.classList.toggle("active", b === btn);
+        });
+        document.querySelectorAll(".process-img").forEach(function (img) {
+          if (img.getAttribute("data-lang") === lang) {
+            img.removeAttribute("hidden");
+          } else {
+            img.setAttribute("hidden", "");
+          }
+        });
+      });
+    }
+  })();
+</script>
+
+</body>
+</html>

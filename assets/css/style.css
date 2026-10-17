@@ -124,3 +124,13 @@ footer {
   border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem;
   text-align: center; padding: 24px 16px;
 }
+
+/* ---- Projects ---- */
+.proj { border-bottom: 1px dashed var(--line); padding: 14px 0; }
+.proj .tag { margin-bottom: 4px; }
+.proj-zh { color: var(--muted); font-size: 0.92rem; margin-top: 2px; }
+.proj-meta { font-size: 0.88rem; color: var(--accent); margin-top: 4px; }
+.proj-role { font-size: 0.95rem; margin-top: 6px; }
+.proj-roc { font-size: 0.8rem; margin-top: 2px; }
+ul.proj-role { margin: 6px 0 0; padding-left: 1.2em; font-size: 0.95rem; }
+ul.proj-role li { margin: 2px 0; }
